@@ -70,4 +70,10 @@ dependencies {
 
     // Dependencias adicionales
     implementation(libs.material.v1110)
+
+    // Google Maps
+    implementation(libs.play.services.maps)
+    implementation(libs.play.services.location)
+    // Para el cálculo de rutas
+    implementation(libs.google.maps.services)
 }

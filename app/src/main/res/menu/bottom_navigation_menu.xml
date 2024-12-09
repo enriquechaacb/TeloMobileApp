@@ -1,22 +1,27 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
     <item
+        android:id="@+id/navigation_home"
+        android:icon="@drawable/ic_home"
+        android:title="@string/btn_home" />
+
+    <item
         android:id="@+id/navigation_current"
         android:icon="@drawable/ic_route"
-        android:title="Servicio Actual" />
+        android:title="@string/btn_currentservice" />
 
     <item
         android:id="@+id/navigation_historic"
         android:icon="@drawable/ic_timer"
-        android:title="Histórico" />
+        android:title="@string/btn_historic" />
 
     <item
         android:id="@+id/navigation_account"
         android:icon="@drawable/ic_monetization"
-        android:title="Estado Cuenta" />
+        android:title="@string/btn_account" />
 
     <item
         android:id="@+id/navigation_profile"
         android:icon="@drawable/ic_person"
-        android:title="Perfil" />
+        android:title="@string/btn_userprofile" />
 </menu>

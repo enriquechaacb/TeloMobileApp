@@ -14,6 +14,8 @@ import com.app.telomobileapp.data.session.SessionManager
 import com.app.telomobileapp.ui.login.Login
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import androidx.appcompat.widget.Toolbar
+import com.app.telomobileapp.ui.main.MainActivity
+import com.app.telomobileapp.ui.service.ServiceCurrent
 
 // BaseActivity.kt
 abstract class BaseActivity : AppCompatActivity() {
@@ -50,10 +52,14 @@ abstract class BaseActivity : AppCompatActivity() {
         val bottomNavigation = findViewById<BottomNavigationView>(R.id.bottom_navigation)
         bottomNavigation.setOnItemSelectedListener { item ->
             when (item.itemId) {
-//                R.id.navigation_current -> {
-//                    startActivity(Intent(this, ServiceCurrent::class.java))
-//                    true
-//                }
+                R.id.navigation_home -> {
+                    startActivity(Intent(this, MainActivity::class.java))
+                    true
+                }
+                R.id.navigation_current -> {
+                    startActivity(Intent(this, ServiceCurrent::class.java))
+                    true
+                }
 //                R.id.navigation_historic -> {
 //                    startActivity(Intent(this, ServiceHistoric::class.java))
 //                    true
