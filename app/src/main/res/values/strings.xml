@@ -1,4 +1,9 @@
 <resources>
     <string name="app_name">TeloMobileApp</string>
     <string name="logo">Transporte telo</string>
+    <string name="btn_home">Inicio</string>
+    <string name="btn_currentservice">Servicio Actual</string>
+    <string name="btn_historic">Histórico</string>
+    <string name="btn_account">Estado de Cuenta</string>
+    <string name="btn_userprofile">Perfil</string>
 </resources>
