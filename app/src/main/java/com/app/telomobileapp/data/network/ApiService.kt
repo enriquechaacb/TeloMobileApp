@@ -1,7 +1,9 @@
 package com.app.telomobileapp.data.network
 
 import com.app.telomobileapp.data.model.DashboardResponse
+import com.app.telomobileapp.data.model.LoginCredentials
 import com.app.telomobileapp.data.model.LoginResponse
+import com.app.telomobileapp.data.model.ServicioActualResponse
 import com.app.telomobileapp.data.model.ServicioHistoricoResponse
 import com.app.telomobileapp.data.model.ServicioResponse
 import retrofit2.http.Body
@@ -21,9 +23,16 @@ interface ApiService {
         @Query("IdUsuario") idUsuario: Int
     ): List<DashboardResponse>
 
-    @GET("Mobile/Servicio/Carga")
+    @GET("Mobile/ServicioActivo/Carga")
     suspend fun getServicioActual(
-        @Query("IdOperador") idOperador: Int,
+//        @Query("IdOperador") idOperador: Int,
+//        @Query("IdServicio") idServicio: Int = 0,
+        @Query("Licencia") licencia: String = "FW2583L"
+    ): List<ServicioActualResponse>
+
+    @GET("Mobile/Servicio/Carga")
+    suspend fun getServicio(
+        //@Query("IdOperador") idOperador: Int,
         @Query("IdServicio") idServicio: Int = 0
     ): List<ServicioResponse>
 
@@ -32,8 +41,5 @@ interface ApiService {
         @Query("IdOperador") idOperador: Int
     ): List<ServicioHistoricoResponse>
 }
-data class LoginCredentials(
-    val UserName: String,
-    val Password: String
-)
+
 

@@ -34,7 +34,7 @@ abstract class BaseActivity : AppCompatActivity() {
         layoutInflater.inflate(getLayoutResourceId(), contentFrame)
     }
 
-    // Método abstracto que cada actividad debe implementar para proporcionar su layout
+    // Metodo abstracto que cada actividad debe implementar para proporcionar su layout
     abstract fun getLayoutResourceId(): Int
 
     private fun setupToolbar() {
@@ -45,7 +45,7 @@ abstract class BaseActivity : AppCompatActivity() {
         supportActionBar?.title = getActivityTitle()
     }
 
-    // Método que las actividades pueden sobrescribir para cambiar el título
+    // Metodo que las actividades pueden sobrescribir para cambiar el título
     open fun getActivityTitle(): String = ""
 
     private fun setupBottomNavigation() {
