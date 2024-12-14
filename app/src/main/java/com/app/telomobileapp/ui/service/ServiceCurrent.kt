@@ -6,6 +6,7 @@ import android.graphics.Color
 import android.location.Location
 import android.os.Bundle
 import android.os.Looper
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -31,10 +32,12 @@ import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.LatLngBounds
 import com.google.android.gms.maps.model.MarkerOptions
 import com.google.android.gms.maps.model.PolylineOptions
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.app.telomobileapp.databinding.ActivityServiceCurrentBinding
 import com.app.telomobileapp.data.network.ApiClient
 import com.app.telomobileapp.data.model.ServicioResponse
 import com.app.telomobileapp.data.model.ServicioHistoricoResponse
+import com.app.telomobileapp.data.model.UbicacionResponse
 import com.app.telomobileapp.data.session.SessionManager
 import com.app.telomobileapp.ui.base.BaseActivity
 import kotlinx.coroutines.CoroutineScope
@@ -44,6 +47,7 @@ import kotlinx.coroutines.withContext
 import org.json.JSONObject
 import java.net.URL
 import com.app.telomobileapp.ui.service.ServiciosAdapter
+import com.google.gson.Gson
 
 class ServiceCurrent : BaseActivity(), OnMapReadyCallback {
     private lateinit var binding: ActivityServiceCurrentBinding
@@ -52,12 +56,15 @@ class ServiceCurrent : BaseActivity(), OnMapReadyCallback {
     private var googleMap: GoogleMap? = null
     private var currentLocation: Location? = null
 
+    var currentServiceId: Int = 0
+
     override fun getLayoutResourceId(): Int = R.layout.activity_service_current
     override fun getActivityTitle(): String = "Servicio Actual"
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityServiceCurrentBinding.inflate(layoutInflater)
+        setContentView(binding.root)
 
         sessionManager = SessionManager(this)
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
@@ -67,6 +74,103 @@ class ServiceCurrent : BaseActivity(), OnMapReadyCallback {
         mapFragment.getMapAsync(this)
 
         checkLocationPermission()
+        loadCurrentService()
+    }
+
+    private fun loadCurrentService() {
+        lifecycleScope.launch {
+            try {
+                binding.loadingIndicator.visibility = View.VISIBLE
+
+                // Obtener el ID del servicio actual
+                val servicioActual = ApiClient.apiService.getServicioActual("FW2583L")
+
+                if (servicioActual.isEmpty()) {
+                    showNoServiceMessage()
+                    return@launch
+                }
+
+                // Obtener los detalles del servicio
+                val servicio = ApiClient.apiService.getServicio(servicioActual[0].IdServicio)[0]
+                showServiceDetails(servicio)
+
+            } catch (e: Exception) {
+                showError("Error al cargar servicio: ${e.message}")
+            } finally {
+                binding.loadingIndicator.visibility = View.GONE
+            }
+        }
+    }
+
+    private fun showNoServiceMessage() {
+        // Mostrar solo el mensaje y ocultar el resto de las vistas
+        binding.apply {
+            // Ocultar el layout del servicio actual y sus elementos
+            servicioActualLayout.visibility = View.GONE
+            detallesCard.visibility = View.GONE
+            mapView.visibility = View.GONE
+            botonesLayout.visibility = View.GONE
+
+            // Ocultar el indicador de carga si estuviera visible
+            loadingIndicator.visibility = View.GONE
+
+            // Crear y mostrar el mensaje usando AlertDialog de Material Design
+            val alertDialog = MaterialAlertDialogBuilder(this@ServiceCurrent)
+                .setTitle("Sin servicios asignados")
+                .setMessage("Actualmente no tienes ningún servicio asignado")
+                .setPositiveButton("Aceptar") { dialog, _ ->
+                    dialog.dismiss()
+                    // Opcional: regresar a la actividad anterior
+                    finish()
+                }
+                .setCancelable(false)
+                .show()
+        }
+    }
+
+    private fun showServiceDetails(servicio: ServicioResponse) {
+        binding.servicioActualLayout.visibility = View.VISIBLE
+
+        // Parsear las ubicaciones
+        val ubicaciones = Gson().fromJson(servicio.JsonUbicaciones, Array<UbicacionResponse>::class.java).toList()
+
+        // Encontrar la primera ubicación no arribada
+        val proximaUbicacion = ubicaciones.firstOrNull { !it.Arribado }
+
+        if (proximaUbicacion != null) {
+            updateMapWithDestination(proximaUbicacion)
+        }
+
+        // Actualizar detalles del servicio
+        binding.referenciaText.text = "Referencia: ${servicio.Referencia}"
+        // Actualizar otros detalles según necesites
+    }
+
+    private fun updateMapWithDestination(ubicacion: UbicacionResponse) {
+        currentLocation?.let { location ->
+            val origin = LatLng(location.latitude, location.longitude)
+            val destination = LatLng(ubicacion.Latitud, ubicacion.Longitud)
+
+            googleMap?.apply {
+                clear()
+
+                // Agregar marcadores
+                addMarker(MarkerOptions()
+                    .position(origin)
+                    .title("Mi ubicación"))
+
+                addMarker(MarkerOptions()
+                    .position(destination)
+                    .title(ubicacion.Nombre))
+
+                // Ajustar la cámara para mostrar ambos puntos
+                val bounds = LatLngBounds.Builder()
+                    .include(origin)
+                    .include(destination)
+                    .build()
+                animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, 100))
+            }
+        }
     }
 
     override fun onMapReady(map: GoogleMap) {
@@ -78,7 +182,6 @@ class ServiceCurrent : BaseActivity(), OnMapReadyCallback {
 
         if (hasLocationPermission()) {
             enableMyLocation()
-            loadCurrentService()
         }
     }
 
@@ -131,27 +234,25 @@ class ServiceCurrent : BaseActivity(), OnMapReadyCallback {
         }
     }
 
-    private fun loadCurrentService() {
+    private fun getCurrentService(){
         lifecycleScope.launch {
             try {
-                binding.loadingIndicator.visibility = View.VISIBLE
-
                 val response = ApiClient.apiService.getServicioActual(
-                    sessionManager.getIdOperador(),
-                    0
+//                    sessionManager.getIdOperador(),
+//                    0,
+                    "FW2583L"
                 )
-
-                if (response.isNotEmpty()) {
-                    showCurrentService(response[0])
-                } else {
-                    loadServicesList()
+                if (response.size==1){
+                    currentServiceId = response[0].IdServicio;
+                    println("Servicio cargado ${currentServiceId}")
                 }
             } catch (e: Exception) {
-                showError("Error al cargar servicio: ${e.message}")
+                showError("Error al obtener servicio: ${e.message}")
             } finally {
                 binding.loadingIndicator.visibility = View.GONE
             }
         }
+
     }
 
     private fun showCurrentService(servicio: ServicioResponse) {
@@ -308,6 +409,7 @@ class ServiceCurrent : BaseActivity(), OnMapReadyCallback {
 
 
 }
+
 /*
 // Adapter para la lista de servicios
 class ServiciosAdapter(

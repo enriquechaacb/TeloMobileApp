@@ -7,7 +7,7 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.app.telomobileapp.ui.main.MainActivity
 import com.app.telomobileapp.data.network.ApiClient
-import com.app.telomobileapp.data.network.LoginCredentials
+import com.app.telomobileapp.data.model.LoginCredentials
 import com.app.telomobileapp.data.session.SessionManager
 import com.app.telomobileapp.databinding.ActivityLoginBinding
 import kotlinx.coroutines.CoroutineScope
