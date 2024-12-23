@@ -54,8 +54,9 @@ class MainActivity : BaseActivity(), WebSocketCallback {
             try {
                 val idOperador = sessionManager.getIdOperador()
                 val idUsuario = sessionManager.getIdUsuario()
+                val licencia = sessionManager.getLicencia()
 
-                val response = ApiClient.apiService.getDashboard(idOperador, idUsuario)
+                val response = ApiClient.apiService.getDashboard(licencia.toString())
                 if (response.isNotEmpty()) {
                     updateDashboard(response[0])
                 }

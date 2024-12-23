@@ -1,6 +1,7 @@
 package com.app.telomobileapp.ui.service
 
 import android.Manifest
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Color
 import android.location.Location
@@ -40,6 +41,7 @@ import com.app.telomobileapp.data.model.ServicioHistoricoResponse
 import com.app.telomobileapp.data.model.UbicacionResponse
 import com.app.telomobileapp.data.session.SessionManager
 import com.app.telomobileapp.ui.base.BaseActivity
+import com.app.telomobileapp.ui.service.ServiceHistory
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -55,18 +57,18 @@ class ServiceCurrent : BaseActivity(), OnMapReadyCallback {
     private lateinit var fusedLocationClient: FusedLocationProviderClient
     private var googleMap: GoogleMap? = null
     private var currentLocation: Location? = null
-
-    var currentServiceId: Int = 0
+    private var pendingUbicacion: UbicacionResponse? = null
+    private var currentServiceId: Int = 0
+    private var licencia: String = ""
 
     override fun getLayoutResourceId(): Int = R.layout.activity_service_current
     override fun getActivityTitle(): String = "Servicio Actual"
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityServiceCurrentBinding.inflate(layoutInflater)
-        setContentView(binding.root)
 
         sessionManager = SessionManager(this)
+        licencia = sessionManager.getLicencia().toString()
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
 
         val mapFragment = supportFragmentManager
@@ -74,34 +76,54 @@ class ServiceCurrent : BaseActivity(), OnMapReadyCallback {
         mapFragment.getMapAsync(this)
 
         checkLocationPermission()
-        loadCurrentService()
+        if (hasLocationPermission()) {
+            getLocationAndLoadService()
+        }
     }
 
+    private fun getLocationAndLoadService() {
+        try {
+            fusedLocationClient.lastLocation
+                .addOnSuccessListener { location: Location? ->
+                    location?.let {
+                        Log.d("ServicioActual", "Ubicación inicial obtenida: ${it.latitude}, ${it.longitude}")
+                        currentLocation = it
+                        // Una vez que tenemos la ubicación, cargamos el servicio
+                        loadCurrentService()
+                    } ?: run {
+                        Log.e("ServicioActual", "No se pudo obtener la ubicación inicial")
+                        // Si no se pudo obtener la ubicación, iniciamos las actualizaciones
+                        startLocationUpdates()
+                    }
+                }
+        } catch (e: SecurityException) {
+            Log.e("ServicioActual", "Error al obtener ubicación: ${e.message}")
+        }
+    }
     private fun loadCurrentService() {
         lifecycleScope.launch {
             try {
                 binding.loadingIndicator.visibility = View.VISIBLE
 
-                // Obtener el ID del servicio actual
-                val servicioActual = ApiClient.apiService.getServicioActual("FW2583L")
+                val servicioActual = ApiClient.apiService.getServicioActual(licencia)
+                Log.d("ServicioActual", "Respuesta servicio actual: $servicioActual")
 
                 if (servicioActual.isEmpty()) {
                     showNoServiceMessage()
                     return@launch
                 }
 
-                // Obtener los detalles del servicio
-                val servicio = ApiClient.apiService.getServicio(servicioActual[0].IdServicio)[0]
+                val servicio = ApiClient.apiService.getServicio(servicioActual[0].IdServicio, licencia)[0]
                 showServiceDetails(servicio)
 
             } catch (e: Exception) {
+                Log.e("ServicioActual", "Error: ${e.message}")
                 showError("Error al cargar servicio: ${e.message}")
             } finally {
                 binding.loadingIndicator.visibility = View.GONE
             }
         }
     }
-
     private fun showNoServiceMessage() {
         // Mostrar solo el mensaje y ocultar el resto de las vistas
         binding.apply {
@@ -122,12 +144,12 @@ class ServiceCurrent : BaseActivity(), OnMapReadyCallback {
                     dialog.dismiss()
                     // Opcional: regresar a la actividad anterior
                     finish()
+                    startActivity(Intent(this@ServiceCurrent, ServiceHistory::class.java))
                 }
                 .setCancelable(false)
                 .show()
         }
     }
-
     private fun showServiceDetails(servicio: ServicioResponse) {
         binding.servicioActualLayout.visibility = View.VISIBLE
 
@@ -142,37 +164,49 @@ class ServiceCurrent : BaseActivity(), OnMapReadyCallback {
         }
 
         // Actualizar detalles del servicio
-        binding.referenciaText.text = "Referencia: ${servicio.Referencia}"
-        // Actualizar otros detalles según necesites
+        showCurrentService(servicio)
     }
-
     private fun updateMapWithDestination(ubicacion: UbicacionResponse) {
+        if (currentLocation == null) {
+            Log.d("ServicioActual", "Ubicación actual no disponible, guardando ubicación pendiente")
+            pendingUbicacion = ubicacion
+            return
+        }
+
         currentLocation?.let { location ->
+            Log.d("ServicioActual", "Actualizando mapa con ubicación: ${location.latitude}, ${location.longitude}")
             val origin = LatLng(location.latitude, location.longitude)
             val destination = LatLng(ubicacion.Latitud, ubicacion.Longitud)
 
             googleMap?.apply {
                 clear()
+                addMarker(MarkerOptions().position(origin).title("Mi ubicación"))
+                addMarker(MarkerOptions().position(destination).title(ubicacion.Nombre))
 
-                // Agregar marcadores
-                addMarker(MarkerOptions()
-                    .position(origin)
-                    .title("Mi ubicación"))
+                val url = getDirectionsUrl(origin, destination)
+                CoroutineScope(Dispatchers.IO).launch {
+                    try {
+                        val path = getRoutePath(url)
+                        withContext(Dispatchers.Main) {
+                            addPolyline(PolylineOptions()
+                                .addAll(path)
+                                .width(10f)
+                                .color(Color.BLUE)
+                                .geodesic(true))
 
-                addMarker(MarkerOptions()
-                    .position(destination)
-                    .title(ubicacion.Nombre))
-
-                // Ajustar la cámara para mostrar ambos puntos
-                val bounds = LatLngBounds.Builder()
-                    .include(origin)
-                    .include(destination)
-                    .build()
-                animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, 100))
+                            val bounds = LatLngBounds.Builder()
+                                .include(origin)
+                                .include(destination)
+                                .build()
+                            animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, 100))
+                        }
+                    } catch (e: Exception) {
+                        Log.e("ServiceCurrent", "Error dibujando ruta: ${e.message}")
+                    }
+                }
             }
         }
     }
-
     override fun onMapReady(map: GoogleMap) {
         googleMap = map
         map.uiSettings.apply {
@@ -184,7 +218,6 @@ class ServiceCurrent : BaseActivity(), OnMapReadyCallback {
             enableMyLocation()
         }
     }
-
     private fun checkLocationPermission() {
         if (!hasLocationPermission()) {
             ActivityCompat.requestPermissions(
@@ -194,14 +227,12 @@ class ServiceCurrent : BaseActivity(), OnMapReadyCallback {
             )
         }
     }
-
     private fun hasLocationPermission(): Boolean {
         return ContextCompat.checkSelfPermission(
             this,
             Manifest.permission.ACCESS_FINE_LOCATION
         ) == PackageManager.PERMISSION_GRANTED
     }
-
     private fun enableMyLocation() {
         try {
             googleMap?.isMyLocationEnabled = true
@@ -210,7 +241,6 @@ class ServiceCurrent : BaseActivity(), OnMapReadyCallback {
             e.printStackTrace()
         }
     }
-
     private fun startLocationUpdates() {
         try {
             val locationRequest = LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, 5000)
@@ -220,55 +250,58 @@ class ServiceCurrent : BaseActivity(), OnMapReadyCallback {
 
             fusedLocationClient.requestLocationUpdates(
                 locationRequest,
-                locationCallback,
+                object : LocationCallback() {
+                    override fun onLocationResult(result: LocationResult) {
+                        currentLocation = result.lastLocation
+
+                        // Si hay una ubicación pendiente por mostrar en el mapa
+                        pendingUbicacion?.let { ubicacion ->
+                            updateMapWithDestination(ubicacion)
+                            pendingUbicacion = null
+                        }
+                    }
+                },
                 Looper.getMainLooper()
             )
         } catch (e: SecurityException) {
-            e.printStackTrace()
+            Log.e("ServicioActual", "Error al iniciar actualizaciones de ubicación: ${e.message}")
         }
     }
-
     private val locationCallback = object : LocationCallback() {
         override fun onLocationResult(result: LocationResult) {
             currentLocation = result.lastLocation
         }
     }
-
-    private fun getCurrentService(){
-        lifecycleScope.launch {
-            try {
-                val response = ApiClient.apiService.getServicioActual(
-//                    sessionManager.getIdOperador(),
-//                    0,
-                    "FW2583L"
-                )
-                if (response.size==1){
-                    currentServiceId = response[0].IdServicio;
-                    println("Servicio cargado ${currentServiceId}")
-                }
-            } catch (e: Exception) {
-                showError("Error al obtener servicio: ${e.message}")
-            } finally {
-                binding.loadingIndicator.visibility = View.GONE
-            }
-        }
-
-    }
-
+//    private fun getCurrentService(){
+//        lifecycleScope.launch {
+//            try {
+//                val response = ApiClient.apiService.getServicioActual(licencia)
+//                if (response.size==1){
+//                    currentServiceId = response[0].IdServicio;
+//                    println("Servicio cargado ${currentServiceId}")
+//                }
+//            } catch (e: Exception) {
+//                showError("Error al obtener servicio: ${e.message}")
+//            } finally {
+//                binding.loadingIndicator.visibility = View.GONE
+//            }
+//        }
+//
+//    }
     private fun showCurrentService(servicio: ServicioResponse) {
         binding.servicioActualLayout.visibility = View.VISIBLE
-        binding.serviciosRecyclerView.visibility = View.GONE
+        //binding.serviciosRecyclerView.visibility = View.GONE
 
         // Actualizar detalles
         binding.referenciaText.text = "Referencia: ${servicio.Referencia}"
-        binding.destinoText.text = "Destino: ${servicio.Destino}"
-        binding.fechaText.text = "Llegada: ${servicio.FechaHora}"
-
+        binding.destinoText.text = ""
+//        binding.destinoText.text = "Destino: ${servicio.Destino}"
+//        binding.fechaText.text = "Llegada: ${servicio.FechaHora}"
+    Log.d("ServicioActual", servicio.toString())
         // Actualizar mapa
-        val destLatLng = LatLng(servicio.LatitudDestino, servicio.LongitudDestino)
-        updateMapRoute(destLatLng)
+        //val destLatLng = LatLng(servicio.LatitudDestino, servicio.LongitudDestino)
+        //updateMapRoute(destLatLng)
     }
-
     private fun updateMapRoute(destLatLng: LatLng) {
         currentLocation?.let { location ->
             val origin = LatLng(location.latitude, location.longitude)
@@ -304,34 +337,37 @@ class ServiceCurrent : BaseActivity(), OnMapReadyCallback {
             }
         }
     }
-
     private fun getDirectionsUrl(origin: LatLng, dest: LatLng): String {
         return "https://maps.googleapis.com/maps/api/directions/json?" +
                 "origin=${origin.latitude},${origin.longitude}" +
                 "&destination=${dest.latitude},${dest.longitude}" +
-                "&key=TU_API_KEY_AQUI"
+                "&key=AIzaSyAhqOX54o8KCskVWI9MFnmEHNME3psU8xY"
     }
-
     private fun loadServicesList() {
         lifecycleScope.launch {
             try {
+
+
+
                 binding.servicioActualLayout.visibility = View.GONE
-                binding.serviciosRecyclerView.visibility = View.VISIBLE
+                //binding.serviciosRecyclerView.visibility = View.VISIBLE
 
                 val servicios = ApiClient.apiService.getServiciosHistorico(
-                    sessionManager.getIdOperador()
+                    "2024-11-01",
+                    "2024-12-01",
+                    10,
+                    licencia
                 )
-
-                binding.serviciosRecyclerView.apply {
-                    layoutManager = LinearLayoutManager(this@ServiceCurrent)
-                    adapter = ServiciosAdapter(servicios)
-                }
+//
+//                binding.serviciosRecyclerView.apply {
+//                    layoutManager = LinearLayoutManager(this@ServiceCurrent)
+//                    adapter = ServiciosAdapter(servicios)
+//                }
             } catch (e: Exception) {
                 showError("Error al cargar lista de servicios: ${e.message}")
             }
         }
     }
-
     private suspend fun getRoutePath(url: String): List<LatLng> {
         return withContext(Dispatchers.IO) {
             try {
@@ -360,7 +396,6 @@ class ServiceCurrent : BaseActivity(), OnMapReadyCallback {
             }
         }
     }
-
     private fun decodePoly(encoded: String): List<LatLng> {
         val poly = ArrayList<LatLng>()
         var index = 0
@@ -393,11 +428,9 @@ class ServiceCurrent : BaseActivity(), OnMapReadyCallback {
         }
         return poly
     }
-
     private fun showError(message: String) {
         Toast.makeText(this, message, Toast.LENGTH_LONG).show()
     }
-
     override fun onDestroy() {
         super.onDestroy()
         fusedLocationClient.removeLocationUpdates(locationCallback)
@@ -406,7 +439,6 @@ class ServiceCurrent : BaseActivity(), OnMapReadyCallback {
     companion object {
         private const val LOCATION_PERMISSION_REQUEST_CODE = 1001
     }
-
 
 }
 

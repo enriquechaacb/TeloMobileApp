@@ -13,6 +13,7 @@ class SessionManager(private val context: Context) {
             putInt("idUsuario", loginResponse.Usuario.IdUsuario)
             putInt("idOperador", loginResponse.Usuario.IdEmpleado) // Guardamos el IdEmpleado como idOperador
             putString("userName", loginResponse.Usuario.UserName)
+            putString("licencia","FW2583L")
             apply()
         }
     }
@@ -21,6 +22,7 @@ class SessionManager(private val context: Context) {
     fun isLoggedIn(): Boolean = getToken() != null
     fun getIdOperador(): Int = sharedPreferences.getInt("idOperador", 0)
     fun getIdUsuario(): Int = sharedPreferences.getInt("idUsuario", 0)
+    fun getLicencia(): String? = sharedPreferences.getString("licencia", "FW2583L")
 
     fun clearSession() {
         sharedPreferences.edit().clear().apply()

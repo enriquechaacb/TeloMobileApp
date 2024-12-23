@@ -16,6 +16,7 @@ import com.google.android.material.bottomnavigation.BottomNavigationView
 import androidx.appcompat.widget.Toolbar
 import com.app.telomobileapp.ui.main.MainActivity
 import com.app.telomobileapp.ui.service.ServiceCurrent
+import com.app.telomobileapp.ui.service.ServiceHistory
 
 // BaseActivity.kt
 abstract class BaseActivity : AppCompatActivity() {
@@ -60,10 +61,10 @@ abstract class BaseActivity : AppCompatActivity() {
                     startActivity(Intent(this, ServiceCurrent::class.java))
                     true
                 }
-//                R.id.navigation_historic -> {
-//                    startActivity(Intent(this, ServiceHistoric::class.java))
-//                    true
-//                }
+                R.id.navigation_historic -> {
+                    startActivity(Intent(this, ServiceHistory::class.java))
+                    true
+                }
 //                R.id.navigation_account -> {
 //                    startActivity(Intent(this, AccountState::class.java))
 //                    true

@@ -19,26 +19,31 @@ interface ApiService {
 
     @GET("Mobile/Dashboard/Carga")
     suspend fun getDashboard(
-        @Query("IdOperador") idOperador: Int,
-        @Query("IdUsuario") idUsuario: Int
+//        @Query("IdOperador") idOperador: Int,
+//        @Query("IdUsuario") idUsuario: Int,
+        @Query("Licencia") licencia: String
     ): List<DashboardResponse>
 
     @GET("Mobile/ServicioActivo/Carga")
     suspend fun getServicioActual(
 //        @Query("IdOperador") idOperador: Int,
 //        @Query("IdServicio") idServicio: Int = 0,
-        @Query("Licencia") licencia: String = "FW2583L"
+        @Query("Licencia") licencia: String
     ): List<ServicioActualResponse>
 
     @GET("Mobile/Servicio/Carga")
     suspend fun getServicio(
         //@Query("IdOperador") idOperador: Int,
-        @Query("IdServicio") idServicio: Int = 0
+        @Query("IdServicio") idServicio: Int = 0,
+        @Query("Licencia") licencia: String
     ): List<ServicioResponse>
 
     @GET("Mobile/Servicio/CargaLista")
     suspend fun getServiciosHistorico(
-        @Query("IdOperador") idOperador: Int
+        @Query("FechaInicio") FechaInicio: String,
+        @Query("FechaFin") FechaFin: String,
+        @Query("Cantidad") Cantidad: Int,
+        @Query("Licencia") licencia: String
     ): List<ServicioHistoricoResponse>
 }
 

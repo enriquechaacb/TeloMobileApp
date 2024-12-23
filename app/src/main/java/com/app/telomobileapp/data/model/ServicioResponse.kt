@@ -12,14 +12,5 @@ data class ServicioResponse(
     val JsonDiesel: String,
     val JsonAnticipos: String,
     val JsonLiquidacion: String,
-    val JsonEvidencias: String,
-
-    val IdServicio: Int,
-    val FechaHora: String,
-    val Origen: String,
-    val Destino: String,
-    val LatitudDestino: Double,
-    val LongitudDestino: Double,
-    val Estado: String,
-    val Detalles: String
+    val JsonEvidencias: String
 )
