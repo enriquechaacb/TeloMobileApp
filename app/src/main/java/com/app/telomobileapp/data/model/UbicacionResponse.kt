@@ -6,6 +6,7 @@ data class UbicacionResponse(
     val Nombre: String,
     val Domicilio: String,
     val RFC: String,
+    val FechaCita: String,
     val Arribado: Boolean,
     val Latitud: Double,
     val Longitud: Double

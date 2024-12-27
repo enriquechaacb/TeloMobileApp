@@ -13,6 +13,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
@@ -58,14 +59,30 @@ class ServiceCurrent : BaseActivity(), OnMapReadyCallback {
     private var googleMap: GoogleMap? = null
     private var currentLocation: Location? = null
     private var pendingUbicacion: UbicacionResponse? = null
-    private var currentServiceId: Int = 0
+    private var servicioActual: ServicioResponse? = null
     private var licencia: String = ""
 
     override fun getLayoutResourceId(): Int = R.layout.activity_service_current
     override fun getActivityTitle(): String = "Servicio Actual"
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        binding = ActivityServiceCurrentBinding.inflate(layoutInflater)
+
+//        binding = ActivityServiceCurrentBinding.inflate(layoutInflater)
+//        setContentView(binding.root)
+
+//        super.setContentView(getLayoutResourceId())
+        binding = ActivityServiceCurrentBinding.bind(findViewById(R.id.service_current_container))
+
+        binding.detailButton.setOnClickListener {
+            Log.d("ServicioActual","Servicio actual Clicked ${servicioActual}")
+            servicioActual?.let { showModalService(it) }
+
+        }
+        binding.historyButton.setOnClickListener {
+            Log.d("ServicioActual","Historia clicked")
+            finish()
+            startActivity(Intent(this, ServiceHistory::class.java))
+        }
 
         sessionManager = SessionManager(this)
         licencia = sessionManager.getLicencia().toString()
@@ -104,18 +121,16 @@ class ServiceCurrent : BaseActivity(), OnMapReadyCallback {
         lifecycleScope.launch {
             try {
                 binding.loadingIndicator.visibility = View.VISIBLE
-
-                val servicioActual = ApiClient.apiService.getServicioActual(licencia)
-                Log.d("ServicioActual", "Respuesta servicio actual: $servicioActual")
-
-                if (servicioActual.isEmpty()) {
-                    showNoServiceMessage()
-                    return@launch
+                val actualService = ApiClient.apiService.getServicioActual(licencia)
+                withContext(Dispatchers.Main) {
+                    if (actualService.isEmpty()) {
+                        showNoServiceMessage()
+                        return@withContext
+                    }
+                    val servicio = ApiClient.apiService.getServicio(actualService[0].IdServicio, licencia)[0]
+                    servicioActual = servicio
+                    showServiceDetails(servicio)
                 }
-
-                val servicio = ApiClient.apiService.getServicio(servicioActual[0].IdServicio, licencia)[0]
-                showServiceDetails(servicio)
-
             } catch (e: Exception) {
                 Log.e("ServicioActual", "Error: ${e.message}")
                 showError("Error al cargar servicio: ${e.message}")
@@ -151,20 +166,49 @@ class ServiceCurrent : BaseActivity(), OnMapReadyCallback {
         }
     }
     private fun showServiceDetails(servicio: ServicioResponse) {
-        binding.servicioActualLayout.visibility = View.VISIBLE
-
-        // Parsear las ubicaciones
         val ubicaciones = Gson().fromJson(servicio.JsonUbicaciones, Array<UbicacionResponse>::class.java).toList()
+
+        Log.d("ServicioActual","ubicaciones: ${ubicaciones}")
 
         // Encontrar la primera ubicación no arribada
         val proximaUbicacion = ubicaciones.firstOrNull { !it.Arribado }
-
+    Log.d("ServicioActual","Proxima ubicacion: ${proximaUbicacion.toString()}")
         if (proximaUbicacion != null) {
             updateMapWithDestination(proximaUbicacion)
+            showCurrentService(servicio, proximaUbicacion)
+        }else{
+            showCurrentService(servicio)
+            binding.mapView.visibility = View.INVISIBLE
         }
+    }
+    private fun showCurrentService(servicio: ServicioResponse, proximaUbicacion: UbicacionResponse? = null) {
 
-        // Actualizar detalles del servicio
-        showCurrentService(servicio)
+        binding.apply {
+            // Asegurar que el layout está visible
+            servicioActualLayout.visibility = View.VISIBLE
+            detallesCard.visibility = View.VISIBLE
+
+            // Actualizar todos los campos
+            referenciaText.text = "${servicio.Referencia}"
+            destinoText.text = "${proximaUbicacion?.Nombre ?: ""} ${proximaUbicacion?.Domicilio ?: ""}"
+            fechaText.text = "${proximaUbicacion?.FechaCita?: ""}"
+
+            // Agregar logs para debug
+            Log.d("ServicioActual", """
+            Referencia: ${servicio.Referencia}
+            Destino: ${proximaUbicacion?.Nombre ?: ""} ${proximaUbicacion?.Domicilio ?: ""}
+            Fecha: ${proximaUbicacion?.FechaCita?: ""}
+            Visibilidad Layout: ${servicioActualLayout.visibility == View.VISIBLE}
+        """.trimIndent())
+        }
+    }
+    private fun showModalService(servicio: ServicioResponse){
+        Log.d("ServicioActual", "Este es el servicio actual: ${ servicio.toString() }")
+        val builder: AlertDialog.Builder = AlertDialog.Builder(this)
+        builder.setTitle(servicio.Referencia)
+        builder.setMessage(servicio.UrlPDF)
+        val dialog: AlertDialog = builder.create()
+        dialog.show()
     }
     private fun updateMapWithDestination(ubicacion: UbicacionResponse) {
         if (currentLocation == null) {
@@ -272,101 +316,46 @@ class ServiceCurrent : BaseActivity(), OnMapReadyCallback {
             currentLocation = result.lastLocation
         }
     }
-//    private fun getCurrentService(){
-//        lifecycleScope.launch {
-//            try {
-//                val response = ApiClient.apiService.getServicioActual(licencia)
-//                if (response.size==1){
-//                    currentServiceId = response[0].IdServicio;
-//                    println("Servicio cargado ${currentServiceId}")
+//    private fun updateMapRoute(destLatLng: LatLng) {
+//        currentLocation?.let { location ->
+//            val origin = LatLng(location.latitude, location.longitude)
+//
+//            // Agregar marcadores
+//            googleMap?.apply {
+//                clear()
+//                addMarker(MarkerOptions().position(origin).title("Mi ubicación"))
+//                addMarker(MarkerOptions().position(destLatLng).title("Destino"))
+//
+//                // Obtener ruta
+//                val url = getDirectionsUrl(origin, destLatLng)
+//                CoroutineScope(Dispatchers.IO).launch {
+//                    try {
+//                        val path = getRoutePath(url)
+//                        withContext(Dispatchers.Main) {
+//                            addPolyline(PolylineOptions()
+//                                .addAll(path)
+//                                .width(8f)
+//                                .color(Color.BLUE))
+//
+//                            // Ajustar zoom para mostrar toda la ruta
+//                            val bounds = LatLngBounds.Builder()
+//                                .include(origin)
+//                                .include(destLatLng)
+//                                .build()
+//                            animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, 100))
+//                        }
+//                    } catch (e: Exception) {
+//                        e.printStackTrace()
+//                    }
 //                }
-//            } catch (e: Exception) {
-//                showError("Error al obtener servicio: ${e.message}")
-//            } finally {
-//                binding.loadingIndicator.visibility = View.GONE
 //            }
 //        }
-//
 //    }
-    private fun showCurrentService(servicio: ServicioResponse) {
-        binding.servicioActualLayout.visibility = View.VISIBLE
-        //binding.serviciosRecyclerView.visibility = View.GONE
-
-        // Actualizar detalles
-        binding.referenciaText.text = "Referencia: ${servicio.Referencia}"
-        binding.destinoText.text = ""
-//        binding.destinoText.text = "Destino: ${servicio.Destino}"
-//        binding.fechaText.text = "Llegada: ${servicio.FechaHora}"
-    Log.d("ServicioActual", servicio.toString())
-        // Actualizar mapa
-        //val destLatLng = LatLng(servicio.LatitudDestino, servicio.LongitudDestino)
-        //updateMapRoute(destLatLng)
-    }
-    private fun updateMapRoute(destLatLng: LatLng) {
-        currentLocation?.let { location ->
-            val origin = LatLng(location.latitude, location.longitude)
-
-            // Agregar marcadores
-            googleMap?.apply {
-                clear()
-                addMarker(MarkerOptions().position(origin).title("Mi ubicación"))
-                addMarker(MarkerOptions().position(destLatLng).title("Destino"))
-
-                // Obtener ruta
-                val url = getDirectionsUrl(origin, destLatLng)
-                CoroutineScope(Dispatchers.IO).launch {
-                    try {
-                        val path = getRoutePath(url)
-                        withContext(Dispatchers.Main) {
-                            addPolyline(PolylineOptions()
-                                .addAll(path)
-                                .width(8f)
-                                .color(Color.BLUE))
-
-                            // Ajustar zoom para mostrar toda la ruta
-                            val bounds = LatLngBounds.Builder()
-                                .include(origin)
-                                .include(destLatLng)
-                                .build()
-                            animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, 100))
-                        }
-                    } catch (e: Exception) {
-                        e.printStackTrace()
-                    }
-                }
-            }
-        }
-    }
     private fun getDirectionsUrl(origin: LatLng, dest: LatLng): String {
         return "https://maps.googleapis.com/maps/api/directions/json?" +
                 "origin=${origin.latitude},${origin.longitude}" +
                 "&destination=${dest.latitude},${dest.longitude}" +
                 "&key=AIzaSyAhqOX54o8KCskVWI9MFnmEHNME3psU8xY"
-    }
-    private fun loadServicesList() {
-        lifecycleScope.launch {
-            try {
-
-
-
-                binding.servicioActualLayout.visibility = View.GONE
-                //binding.serviciosRecyclerView.visibility = View.VISIBLE
-
-                val servicios = ApiClient.apiService.getServiciosHistorico(
-                    "2024-11-01",
-                    "2024-12-01",
-                    10,
-                    licencia
-                )
-//
-//                binding.serviciosRecyclerView.apply {
-//                    layoutManager = LinearLayoutManager(this@ServiceCurrent)
-//                    adapter = ServiciosAdapter(servicios)
-//                }
-            } catch (e: Exception) {
-                showError("Error al cargar lista de servicios: ${e.message}")
-            }
-        }
     }
     private suspend fun getRoutePath(url: String): List<LatLng> {
         return withContext(Dispatchers.IO) {
