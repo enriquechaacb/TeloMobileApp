@@ -10,16 +10,16 @@ import android.os.Looper
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
-import android.view.ViewGroup
+import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
-import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
 import com.app.telomobileapp.R
+import com.app.telomobileapp.data.model.AnticipoResponse
+import com.app.telomobileapp.data.model.EvidenciaResponse
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationCallback
 import com.google.android.gms.location.LocationRequest
@@ -38,19 +38,19 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.app.telomobileapp.databinding.ActivityServiceCurrentBinding
 import com.app.telomobileapp.data.network.ApiClient
 import com.app.telomobileapp.data.model.ServicioResponse
-import com.app.telomobileapp.data.model.ServicioHistoricoResponse
 import com.app.telomobileapp.data.model.UbicacionResponse
 import com.app.telomobileapp.data.session.SessionManager
 import com.app.telomobileapp.ui.base.BaseActivity
-import com.app.telomobileapp.ui.service.ServiceHistory
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
 import java.net.URL
-import com.app.telomobileapp.ui.service.ServiciosAdapter
 import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 
 class ServiceCurrent : BaseActivity(), OnMapReadyCallback {
     private lateinit var binding: ActivityServiceCurrentBinding
@@ -66,15 +66,9 @@ class ServiceCurrent : BaseActivity(), OnMapReadyCallback {
     override fun getActivityTitle(): String = "Servicio Actual"
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-//        binding = ActivityServiceCurrentBinding.inflate(layoutInflater)
-//        setContentView(binding.root)
-
-//        super.setContentView(getLayoutResourceId())
         binding = ActivityServiceCurrentBinding.bind(findViewById(R.id.service_current_container))
 
         binding.detailButton.setOnClickListener {
-            Log.d("ServicioActual","Servicio actual Clicked ${servicioActual}")
             servicioActual?.let { showModalService(it) }
 
         }
@@ -202,14 +196,149 @@ class ServiceCurrent : BaseActivity(), OnMapReadyCallback {
         """.trimIndent())
         }
     }
-    private fun showModalService(servicio: ServicioResponse){
-        Log.d("ServicioActual", "Este es el servicio actual: ${ servicio.toString() }")
-        val builder: AlertDialog.Builder = AlertDialog.Builder(this)
-        builder.setTitle(servicio.Referencia)
-        builder.setMessage(servicio.UrlPDF)
-        val dialog: AlertDialog = builder.create()
+    private fun showModalService(servicio: ServicioResponse) {
+        val gson = Gson()
+        val dialogView = layoutInflater.inflate(R.layout.activity_service_selected_detail, null)
+        //Crear el diálogo
+        val builder = AlertDialog.Builder(this)
+            .setView(dialogView)
+            .setTitle("Detalles del servicio ${servicio.Referencia}")
+            .setNegativeButton("Cerrar", null)
+        val dialog = builder.create()
+
+        // Configurar referencias de vistas
+        val tvOrigen = dialogView.findViewById<TextView>(R.id.tvOrigen)
+        val tvDestino = dialogView.findViewById<TextView>(R.id.tvDestino)
+
+        // Ubicaciones ----------------------------------------------------------------------------
+        val sectionStops = dialogView.findViewById<TextView>(R.id.sectionStops)
+        val contentStops = dialogView.findViewById<LinearLayout>(R.id.contentStops)
+        val typeStops = object : TypeToken<List<UbicacionResponse>>() {}.type
+        try {
+            val ubicaciones: List<UbicacionResponse> =
+                gson.fromJson(servicio.JsonUbicaciones, typeStops)
+            if (ubicaciones.isNotEmpty()) {
+                tvOrigen.text = "Origen ${ubicaciones[0].Nombre}"
+                tvDestino.text = "Destino ${ubicaciones[ubicaciones.size - 1].Nombre}"
+            } else {
+                tvOrigen.text = "Origen no disponible"
+                tvDestino.text = "Destino no disponible"
+            }
+            ubicaciones.forEach { x ->
+                val stopView =
+                    LayoutInflater.from(this).inflate(R.layout.item_stop, contentStops, false)
+                stopView.findViewById<TextView>(R.id.tvTipoMovimiento).text = x.TipoMovimientoViaje
+                stopView.findViewById<TextView>(R.id.tvNombre).text = x.Nombre
+                stopView.findViewById<TextView>(R.id.tvDomicilio).text = x.Domicilio
+                contentStops.addView(stopView)
+            }
+        } catch (e: Exception) {
+            println("Error al convertir el JSON: ${e.message}")
+            Log.e("ServicioActual","Error de JSON Ubicaciones ${e.message}")
+        }
+
+        // Anticipos -------------------------------------------------------------------------------
+        val sectionAdvances = dialogView.findViewById<TextView>(R.id.sectionAdvances)
+        val contentAdvances = dialogView.findViewById<LinearLayout>(R.id.contentAdvances)
+        val typeAdvance = object : TypeToken<List<AnticipoResponse>>() {}.type
+        try {
+            val anticipos: List<AnticipoResponse> = gson.fromJson(servicio.JsonAnticipos, typeAdvance)
+            Log.i("ServicioActual","JSON ANTICIPOS ${anticipos}")
+            anticipos.forEach { x ->
+                val advView = LayoutInflater.from(this).inflate(R.layout.item_advance, contentAdvances, false)
+                advView.findViewById<TextView>(R.id.tvConcepto).text = "${x.IdAnticipo} ${x.Concepto}"
+                advView.findViewById<TextView>(R.id.tvTransferencia).text = "Transferido el: ${formatDate(x.FechaHoraTransferido)} ref. ${x.ReferenciaTransferencia}"
+                advView.findViewById<TextView>(R.id.tvMonto).text = "Monto: $${x.Monto}"
+                advView.findViewById<TextView>(R.id.tvMontoComprobado).text = "Comprobado: $${x.MontoComprobado}"
+                advView.findViewById<TextView>(R.id.tvSaldo).text = "Saldo: $${x.Saldo}"
+                contentAdvances.addView(advView)
+            }
+        } catch (e: Exception) {
+            println("Error al convertir el JSON: ${e.message}")
+            Log.e("ServicioActual","Error de JSON Anticipos ${e.message}")
+        }
+
+        // Evidencias -------------------------------------------------------------------------------
+        val sectionEvidences = dialogView.findViewById<TextView>(R.id.sectionEvidences)
+        val contentEvidences = dialogView.findViewById<LinearLayout>(R.id.contentEvidences)
+        val typeEvidence = object : TypeToken<List<EvidenciaResponse >>() {}.type
+        try {
+            val evidencias: List<EvidenciaResponse> = gson.fromJson(servicio.JsonEvidencias, typeEvidence)
+            evidencias.forEach { x ->
+                val evidView = LayoutInflater.from(this).inflate(R.layout.item_evidence, contentEvidences, false)
+                val tvRecibido = evidView.findViewById<TextView>(R.id.tvRecibido)
+                // Nombre
+                val tvNombre = evidView.findViewById<TextView>(R.id.tvNombre)
+                if (!x.Nombre.isNullOrEmpty()) {
+                    tvNombre.text = x.Nombre
+                } else {
+                    tvNombre.visibility = View.GONE
+                }
+
+                // Fecha Recibido
+                val tvFechaRecibido = evidView.findViewById<TextView>(R.id.tvFechaRecibido)
+                if (!x.FechaRecibido.isNullOrEmpty()) {
+                    tvFechaRecibido.text = x.FechaRecibido
+                    tvRecibido.visibility = View.GONE
+                } else {
+                    tvFechaRecibido.visibility = View.GONE
+                    tvRecibido.visibility = View.VISIBLE
+                }
+
+                // Usuario Recibe
+                val tvUsuarioRecibe = evidView.findViewById<TextView>(R.id.tvUsuarioRecibe)
+                if (!x.UsuarioRecibe.isNullOrEmpty()) {
+                    tvUsuarioRecibe.text = x.UsuarioRecibe
+                } else {
+                    tvUsuarioRecibe.visibility = View.GONE
+                }
+
+                // URL Documento
+                val tvUrlDocumento = evidView.findViewById<TextView>(R.id.tvUrlDocumento)
+                if (!x.UrlDocumento.isNullOrEmpty()) {
+                    tvUrlDocumento.text = x.UrlDocumento
+                } else {
+                    tvUrlDocumento.visibility = View.GONE
+                }
+
+                // Agregar la vista al contenedor
+                contentEvidences.addView(evidView)
+            }
+
+        } catch (e: Exception) {
+            println("Error al convertir el JSON: ${e.message}")
+            Log.e("ServicioActual","Error de JSON Evidencias ${e.message}")
+        }
+
+        val allSections = listOf(contentStops, contentAdvances, contentEvidences)
+        sectionStops.setOnClickListener {
+            toggleSection(contentStops, allSections)
+        }
+        sectionAdvances.setOnClickListener {
+            toggleSection(contentAdvances, allSections)
+        }
+        sectionEvidences.setOnClickListener {
+            toggleSection(contentEvidences, allSections)
+        }
+
+        // Mostrar el diálogo
         dialog.show()
     }
+
+    private fun toggleSection(selectedSection: View, allSections: List<View>) {
+        // Si la sección seleccionada ya está visible, oculta todas
+        if (selectedSection.visibility == View.VISIBLE) {
+            allSections.forEach { section ->
+                section.visibility = View.GONE // Oculta todas las secciones
+            }
+        } else {
+            // De lo contrario, oculta todas menos la seleccionada
+            allSections.forEach { section ->
+                section.visibility = if (section == selectedSection) View.VISIBLE else View.GONE
+            }
+        }
+    }
+
     private fun updateMapWithDestination(ubicacion: UbicacionResponse) {
         if (currentLocation == null) {
             Log.d("ServicioActual", "Ubicación actual no disponible, guardando ubicación pendiente")
@@ -311,46 +440,20 @@ class ServiceCurrent : BaseActivity(), OnMapReadyCallback {
             Log.e("ServicioActual", "Error al iniciar actualizaciones de ubicación: ${e.message}")
         }
     }
+    private fun formatDate(date: String): String {
+        return try {
+            val dateTime = LocalDateTime.parse(date) // Analiza la fecha en formato ISO-8601
+            val formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm") // Formato de salida
+            dateTime.format(formatter) // Devuelve la fecha formateada
+        } catch (e: Exception) {
+            "Formato de fecha inválido" // Manejo de errores si el análisis falla
+        }
+    }
     private val locationCallback = object : LocationCallback() {
         override fun onLocationResult(result: LocationResult) {
             currentLocation = result.lastLocation
         }
     }
-//    private fun updateMapRoute(destLatLng: LatLng) {
-//        currentLocation?.let { location ->
-//            val origin = LatLng(location.latitude, location.longitude)
-//
-//            // Agregar marcadores
-//            googleMap?.apply {
-//                clear()
-//                addMarker(MarkerOptions().position(origin).title("Mi ubicación"))
-//                addMarker(MarkerOptions().position(destLatLng).title("Destino"))
-//
-//                // Obtener ruta
-//                val url = getDirectionsUrl(origin, destLatLng)
-//                CoroutineScope(Dispatchers.IO).launch {
-//                    try {
-//                        val path = getRoutePath(url)
-//                        withContext(Dispatchers.Main) {
-//                            addPolyline(PolylineOptions()
-//                                .addAll(path)
-//                                .width(8f)
-//                                .color(Color.BLUE))
-//
-//                            // Ajustar zoom para mostrar toda la ruta
-//                            val bounds = LatLngBounds.Builder()
-//                                .include(origin)
-//                                .include(destLatLng)
-//                                .build()
-//                            animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, 100))
-//                        }
-//                    } catch (e: Exception) {
-//                        e.printStackTrace()
-//                    }
-//                }
-//            }
-//        }
-//    }
     private fun getDirectionsUrl(origin: LatLng, dest: LatLng): String {
         return "https://maps.googleapis.com/maps/api/directions/json?" +
                 "origin=${origin.latitude},${origin.longitude}" +
@@ -430,32 +533,3 @@ class ServiceCurrent : BaseActivity(), OnMapReadyCallback {
     }
 
 }
-
-/*
-// Adapter para la lista de servicios
-class ServiciosAdapter(
-    private val servicios: List<ServicioHistoricoResponse>
-) : RecyclerView.Adapter<ServiciosAdapter.ViewHolder>() {
-
-    class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
-        val referenciaText: TextView = view.findViewById(R.id.referenciaText)
-        val destinoText: TextView = view.findViewById(R.id.destinoText)
-        val fechaText: TextView = view.findViewById(R.id.fechaText)
-    }
-
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        val view = LayoutInflater.from(parent.context)
-            .inflate(R.layout.item_servicio, parent, false)
-        return ViewHolder(view)
-    }
-
-    override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        val servicio = servicios[position]
-        holder.referenciaText.text = "Ref: ${servicio.Referencia}"
-        holder.destinoText.text = servicio.Destino
-        holder.fechaText.text = servicio.FechaInicio
-    }
-
-    override fun getItemCount() = servicios.size
-}
-*/

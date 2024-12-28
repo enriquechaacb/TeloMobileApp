@@ -6,4 +6,10 @@
     <string name="btn_historic">Histórico</string>
     <string name="btn_account">Estado de Cuenta</string>
     <string name="btn_userprofile">Perfil</string>
+    <string-array name="filtro_servicios">
+        <item>Últimos diez</item>
+        <item>Mes actual</item>
+        <item>Mes anterior</item>
+        <item>Dos meses atrás</item>
+    </string-array>
 </resources>

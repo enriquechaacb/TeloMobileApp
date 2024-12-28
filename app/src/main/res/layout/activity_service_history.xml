@@ -1,21 +1,140 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/service_history_container"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fillViewport="true">
-        <androidx.constraintlayout.widget.ConstraintLayout
-            android:id="@+id/servicioActualLayout"
+
+        <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
 
+                <Spinner
+                    android:id="@+id/spinnerFiltro"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="8dp"
+                    android:padding="12dp"/>
 
+                <!--<LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                        android:orientation="horizontal">
+                        <Button
+                            android:id="@+id/btnTodos"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:layout_marginEnd="4dp"
+                            android:text="Todos"
+                            android:drawableStart="@drawable/ic_start"/>
+                        <Button
+                            android:id="@+id/btnCompletados"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:layout_marginEnd="4dp"
+                            android:text="Completados"
+                            android:drawableStart="@drawable/ic_start"/>
+                        <Button
+                            android:id="@+id/btnCancelados"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="Cancelados"
+                            android:drawableStart="@drawable/ic_start"/>
+                </LinearLayout>-->
 
+                <!-- Resumen de Servicios -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_gravity="clip_horizontal"
+                    android:padding="8dp">
 
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/serviciosRecyclerView"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"/>
+                        <!-- Total Servicios -->
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_weight="1"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical"
+                            android:gravity="center">
+                                <ImageView
+                                    android:layout_width="24dp"
+                                    android:layout_height="24dp"
+                                    android:src="@drawable/ic_detail" />
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="Total Servicios"
+                                    android:textSize="12sp" />
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="1"
+                                    android:textStyle="bold"
+                                    android:textSize="16sp" />
+                        </LinearLayout>
 
-        </androidx.constraintlayout.widget.ConstraintLayout>
+                        <!-- Kilómetros -->
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_weight="1"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical"
+                            android:gravity="center">
+                                <ImageView
+                                    android:layout_width="24dp"
+                                    android:layout_height="24dp"
+                                    android:src="@drawable/ic_route" />
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="Kilómetros"
+                                    android:textSize="12sp" />
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="890 km"
+                                    android:textStyle="bold"
+                                    android:textSize="16sp" />
+                        </LinearLayout>
+
+                        <!-- Completados -->
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_weight="1"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical"
+                            android:gravity="center">
+                                <ImageView
+                                    android:layout_width="24dp"
+                                    android:layout_height="24dp"
+                                    android:src="@drawable/ic_check" />
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="Completados"
+                                    android:textSize="12sp" />
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="1/1"
+                                    android:textStyle="bold"
+                                    android:textSize="16sp" />
+                        </LinearLayout>
+                </LinearLayout>
+
+                <!-- Lista de Servicios -->
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/serviciosRecyclerView"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:paddingTop="16dp"
+                    android:clipToPadding="false" />
+        </LinearLayout>
 </androidx.core.widget.NestedScrollView>

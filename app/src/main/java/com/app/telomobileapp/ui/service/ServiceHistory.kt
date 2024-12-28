@@ -1,16 +1,14 @@
 package com.app.telomobileapp.ui.service
 
-import android.Manifest
-import android.content.Intent
-import android.content.pm.PackageManager
-import android.graphics.Color
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.AdapterView
+import android.widget.ArrayAdapter
+import android.widget.Spinner
 import android.widget.TextView
-import android.widget.Toast
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -24,6 +22,8 @@ import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.launch
 import retrofit2.HttpException
 import java.io.IOException
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 
 class ServiceHistory : BaseActivity() {
     private lateinit var binding: ActivityServiceHistoryBinding
@@ -34,14 +34,43 @@ class ServiceHistory : BaseActivity() {
     override fun getActivityTitle(): String = "Histórico de servicios"
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        binding = ActivityServiceHistoryBinding.inflate(layoutInflater)
-
+        binding = ActivityServiceHistoryBinding.bind(findViewById(R.id.service_history_container))
         sessionManager = SessionManager(this)
         licencia = sessionManager.getLicencia().toString()
-
         loadServicesGrid()
+
+//        binding.detailButton.setOnClickListener {
+//            servicioActual?.let { showModalService(it) }
+//        }
+
+        val spinner = findViewById<Spinner>(R.id.spinnerFiltro)
+        ArrayAdapter.createFromResource(
+            this,
+            R.array.filtro_servicios,
+            android.R.layout.simple_spinner_item
+        ).also { adapter ->
+            adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+            spinner.adapter = adapter
+        }
+
+        spinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(parent: AdapterView<*>, view: View?, pos: Int, id: Long) {
+                when (pos) {
+                    0 -> mostrarTodos()
+                    1 -> loadServicesList()
+                    //2 -> // Filtrar cancelados
+                }
+            }
+
+            override fun onNothingSelected(parent: AdapterView<*>) {
+                // Opcional: Manejar cuando no hay selección
+            }
+        }
     }
 
+    private fun mostrarTodos(){
+        Log.d("ServicioFiltrado","Filtro")
+    }
     private fun loadServicesGrid() {
         try {
             Log.d("ServicioHistorico", "Entra funcion")
@@ -83,10 +112,9 @@ class ServiceHistory : BaseActivity() {
     }
 
     private fun showError(message: String) {
-        //Toast.makeText(this, message, Toast.LENGTH_LONG).show()
         Snackbar.make(binding.root, message, Snackbar.LENGTH_LONG).show()
-
     }
+
 
 
     // Adapter para la lista de servicios
@@ -96,6 +124,7 @@ class ServiceHistory : BaseActivity() {
 
         class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
             val referenciaText: TextView = view.findViewById(R.id.referenciaText)
+            val origenText: TextView = view.findViewById(R.id.origenText)
             val destinoText: TextView = view.findViewById(R.id.destinoText)
             val fechaText: TextView = view.findViewById(R.id.fechaText)
         }
@@ -109,11 +138,22 @@ class ServiceHistory : BaseActivity() {
         override fun onBindViewHolder(holder: ViewHolder, position: Int) {
             val servicio = servicios[position]
             holder.referenciaText.text = "Ref: ${servicio.Referencia}"
-            holder.destinoText.text = servicio.Destino
-            holder.fechaText.text = servicio.FechaInicio
+            holder.origenText.text = "Origen: ${servicio.Origen}"
+            holder.destinoText.text = "Destino: ${servicio.Destino}"
+            holder.fechaText.text = formatDate(servicio.FechaInicio)
         }
 
         override fun getItemCount() = servicios.size
+
+        private fun formatDate(date: String): String {
+            return try {
+                val dateTime = LocalDateTime.parse(date) // Analiza la fecha en formato ISO-8601
+                val formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm") // Formato de salida
+                dateTime.format(formatter) // Devuelve la fecha formateada
+            } catch (e: Exception) {
+                "Formato de fecha inválido" // Manejo de errores si el análisis falla
+            }
+        }
     }
 
 }

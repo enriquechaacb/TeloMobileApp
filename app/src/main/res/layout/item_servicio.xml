@@ -19,11 +19,15 @@
             android:textSize="16sp"/>
 
         <TextView
+            android:id="@+id/origenText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"/>
+        <TextView
             android:id="@+id/destinoText"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
-            android:textSize="14sp"/>
+            android:layout_marginTop="4dp"/>
 
         <TextView
             android:id="@+id/fechaText"

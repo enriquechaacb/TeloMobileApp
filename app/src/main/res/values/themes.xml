@@ -2,7 +2,9 @@
     <!-- Base application theme. -->
     <style name="Base.Theme.TeloMobileApp" parent="Theme.Material3.DayNight.NoActionBar">
         <!-- Customize your light theme here. -->
-        <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
+        <item name="colorPrimary">@color/telo_orange</item>
+        <item name="colorAccent">@color/telo_gray</item>
+        <item name="colorError">@color/warn</item>
     </style>
 
     <style name="Theme.TeloMobileApp" parent="Base.Theme.TeloMobileApp" />

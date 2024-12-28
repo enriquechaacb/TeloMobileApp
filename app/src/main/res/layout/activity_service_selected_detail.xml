@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:padding="16dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/tvOrigen"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Origen"
+            android:textSize="18sp"
+            android:layout_marginBottom="8dp" />
+
+        <TextView
+            android:id="@+id/tvDestino"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Destino"
+            android:textSize="18sp"
+            android:layout_marginBottom="8dp" />
+
+        <!-- Sección de Paradas -->
+        <androidx.appcompat.widget.AppCompatTextView
+            android:id="@+id/sectionStops"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@color/telo_gray"
+            android:textColor="@color/white"
+            android:padding="8dp"
+            android:text="Paradas"
+            android:drawableEnd="@drawable/ic_expand_more" />
+
+        <LinearLayout
+            android:id="@+id/contentStops"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:visibility="gone"
+            android:padding="8dp">
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rvStops"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:visibility="gone" />
+
+        </LinearLayout>
+
+        <!-- Anticipos -->
+        <androidx.appcompat.widget.AppCompatTextView
+            android:id="@+id/sectionAdvances"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@color/telo_gray"
+            android:textColor="@color/white"
+            android:padding="8dp"
+            android:text="Anticipos"
+            android:drawableEnd="@drawable/ic_expand_more" />
+
+        <LinearLayout
+            android:id="@+id/contentAdvances"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:visibility="gone"
+            android:padding="8dp">
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rvAdvances"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:visibility="gone" />
+        </LinearLayout>
+
+        <!-- Evidencias -->
+        <androidx.appcompat.widget.AppCompatTextView
+            android:id="@+id/sectionEvidences"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@color/telo_gray"
+            android:textColor="@color/white"
+            android:padding="8dp"
+            android:text="Evidencias"
+            android:drawableEnd="@drawable/ic_expand_more" />
+
+        <LinearLayout
+            android:id="@+id/contentEvidences"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:visibility="gone"
+            android:padding="8dp">
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rvEvidences"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:visibility="gone" />
+        </LinearLayout>
+
+        <!-- Pagos -->
+
+
+    </LinearLayout>
+</ScrollView>
