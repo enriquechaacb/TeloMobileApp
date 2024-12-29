@@ -18,7 +18,7 @@ class ServiciosAdapter(
             binding.apply {
                 referenciaText.text = "Ref: ${servicio.Referencia}"
                 destinoText.text = servicio.Destino
-                fechaText.text = servicio.FechaInicio
+                fechaText.text = servicio.FechaDespachoReal
             }
         }
     }

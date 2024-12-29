@@ -1,10 +1,18 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
     <!-- Base application theme. -->
     <style name="Base.Theme.TeloMobileApp" parent="Theme.Material3.DayNight.NoActionBar">
-        <!-- Customize your light theme here. -->
+        <!-- Color de fondo del splash screen
+        <item name="android:windowSplashScreenBackground">@color/telo_orange</item>
+        <item name="android:windowSplashScreenAnimatedIcon">@drawable/ic_launcher_foreground</item>
+        -->
+
+        <!-- Opcional: Color de la barra de estado -->
+        <item name="android:statusBarColor">@color/telo_dark_gray</item>
         <item name="colorPrimary">@color/telo_orange</item>
         <item name="colorAccent">@color/telo_gray</item>
         <item name="colorError">@color/warn</item>
+
+        <!--<item name="android:windowBackground">@drawable/splash_background</item>-->
     </style>
 
     <style name="Theme.TeloMobileApp" parent="Base.Theme.TeloMobileApp" />
