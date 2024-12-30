@@ -19,12 +19,16 @@ import WebSocketCallback
 import com.app.telomobileapp.data.session.SessionManager
 import androidx.lifecycle.lifecycleScope
 import com.app.telomobileapp.R
+import com.app.telomobileapp.data.model.EvidenciaResponse
 import com.app.telomobileapp.data.model.FacturacionResponse
+import com.app.telomobileapp.data.model.RendimientoResponse
 import com.app.telomobileapp.data.model.UbicacionResponse
 import com.app.telomobileapp.databinding.ActivityServiceHistoryBinding
 import com.app.telomobileapp.ui.base.BaseActivity
 import com.google.gson.reflect.TypeToken
 import kotlinx.coroutines.launch
+import java.math.BigDecimal
+import java.math.RoundingMode
 
 
 class MainActivity : BaseActivity(), WebSocketCallback {
@@ -85,41 +89,52 @@ class MainActivity : BaseActivity(), WebSocketCallback {
             val pf = if (progressFact >= 100) 100 else progressFact
             binding.progressFacturacion.progress = pf
             binding.tvProgressFacturacion.text = "${pf}%"
-            Log.d("Dashboard","Progreso: ${progressFact}")
+            Log.d("Dashboard","ProgresoFact: ${progressFact}")
+        }
+
+        // Actualizar Rendimiento
+        val typeRend = object : TypeToken<List<RendimientoResponse>>() {}.type
+        val rendimiento: List<RendimientoResponse> = gson.fromJson(data.JsonRendimiento, typeRend)
+        if(rendimiento.size > 0){
+            var LitrosTotalesReales = 0.00
+            var Kilometros = 0.00
+            var RendimientoMinimo = 0.00
+            for((index,rend) in rendimiento.withIndex()){
+                LitrosTotalesReales += rend.LitrosTotalesReales
+                Kilometros += rend.Kilometros
+                RendimientoMinimo += rend.RendimientoMinimo
+            }
+            val kml = Kilometros/LitrosTotalesReales
+            val rend = RendimientoMinimo/rendimiento.size
+            binding.tvRendimiento.text = "Rendimiento mínimo: ${rend}km/lt"
+            var progressRend = ((kml/rend)*100).toInt()
+            val pr = if (progressRend >= 100) 100 else progressRend
+            binding.progressRendimiento.progress = pr
+            binding.tvProgressRendimiento.text = "${BigDecimal(kml).setScale(2, RoundingMode.HALF_UP).toDouble()}"
+            Log.d("Dashboard","ProgresoRend: ${progressRend}")
+        }
+
+        // Actualizar Evidencias
+        val typeEv = object : TypeToken<List<EvidenciaResponse>>() {}.type
+        val evidencias: List<EvidenciaResponse> = gson.fromJson(data.JsonEvidencias, typeEv)
+        if(evidencias.size > 0){
+            var EvidenciasFaltantes = 0
+            var ServEvFalt = 0
+            for((index,ev) in evidencias.withIndex()){
+                EvidenciasFaltantes += ev.EvidenciasFaltantes
+                if(ev.EvidenciasFaltantes > 0){
+                    ServEvFalt++
+                }
+            }
+            binding.tvEvidencias.text = if (EvidenciasFaltantes > 0) "en ${ServEvFalt} servicios" else "Evidencias faltantes. ¡Excelente!"
+//            var progressRend = ((kml/rend)*100).toInt()
+            val pr = if (EvidenciasFaltantes > 0) 100 else 0
+            binding.progressEvidencias.progress = pr
+            binding.tvProgressEvidencias.text = EvidenciasFaltantes.toString()
+//            Log.d("Dashboard","ProgresoRend: ${progressRend}")
         }
 
 
-//        binding.progressFacturacion.progress = facturacion.porcentaje.toInt()
-//        binding.tvFacturacion.text = String.format(
-//            "$%.1fK / $%.1fK\nFacturación",
-//            facturacion.actual / 1000,
-//            facturacion.meta / 1000
-//        )
-//
-//        // Actualizar Servicios
-//        val servicios = Gson().fromJson(data.JsonServicios, ServiciosData::class.java)
-//        binding.progressServicios.progress = servicios.porcentaje.toInt()
-//        binding.tvServicios.text = String.format(
-//            "%d/%d\nServicios con evidencias",
-//            servicios.evidencias,
-//            servicios.servicios
-//        )
-//
-//        // Actualizar Rendimiento
-//        val rendimiento = Gson().fromJson(data.JsonRendimiento, RendimientoData::class.java)
-//        binding.progressRendimiento.progress = ((rendimiento.diferencia + 1) * 50).toInt()
-//        binding.tvRendimiento.text = String.format(
-//            "%.1f km/h\n%d kms\n%d hrs",
-//            rendimiento.kmh,
-//            rendimiento.kms,
-//            rendimiento.hrs
-//        )
-//
-//        // Mostrar pendientes si existen
-//        val pendientes = Gson().fromJson(data.JsonPendientes, PendientesData::class.java)
-//        if (pendientes != null) {
-//            showError("El servicio ${pendientes.servicioId} no se puede liquidar porque ${pendientes.mensaje}")
-//        }
     }
     private fun showError(message: String) {
         binding.cardError.visibility = View.VISIBLE

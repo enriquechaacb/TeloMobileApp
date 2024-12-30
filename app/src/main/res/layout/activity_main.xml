@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="16dp"
+    android:padding="@dimen/common_padding_default"
     android:id="@+id/activity_main_container">
 
     <LinearLayout
@@ -19,14 +19,25 @@
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/cardFacturacion"
                 android:layout_width="0dp"
-                android:layout_height="wrap_content"
+                android:layout_height="240dp"
                 android:layout_weight="1"
                 android:layout_margin="8dp">
+                <TextView
+                    android:id="@+id/tvFacturaciontitle"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/common_padding_default"
+                    android:paddingBottom="@dimen/common_padding_default"
+                    android:textAlignment="center"
+                    android:textStyle="bold"
+                    android:textSize="@dimen/title_h2"
+                    android:text="Facturación"/>
 
                 <androidx.constraintlayout.widget.ConstraintLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:padding="16dp">
+                    android:layout_marginTop="8dp"
+                    android:padding="@dimen/common_padding_default">
 
                     <com.google.android.material.progressindicator.CircularProgressIndicator
                         android:id="@+id/progressFacturacion"
@@ -40,7 +51,7 @@
                         app:indicatorSize="100dp"
                         app:trackThickness="8dp"
                         app:trackColor="@android:color/darker_gray"
-                        app:indicatorColor="@color/telo_orange" />
+                        app:indicatorColor="@color/accept" />
 
                     <TextView
                         android:id="@+id/tvProgressFacturacion"
@@ -71,41 +82,72 @@
                 </androidx.constraintlayout.widget.ConstraintLayout>
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- Servicios -->
+            <!-- Rendimiento -->
             <com.google.android.material.card.MaterialCardView
-                android:id="@+id/cardServicios"
+                android:id="@+id/cardRendimiento"
                 android:layout_width="0dp"
-                android:layout_height="wrap_content"
+                android:layout_height="240dp"
                 android:layout_weight="1"
                 android:layout_margin="8dp">
-
-                <LinearLayout
+                <TextView
+                    android:id="@+id/tvRendimientotitle"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:padding="16dp">
+                    android:layout_marginTop="@dimen/common_padding_default"
+                    android:paddingBottom="@dimen/common_padding_default"
+                    android:textAlignment="center"
+                    android:textStyle="bold"
+                    android:textSize="@dimen/title_h2"
+                    android:text="Rendimiento"/>
+
+                <androidx.constraintlayout.widget.ConstraintLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="24dp"
+                    android:padding="@dimen/common_padding_default">
 
                     <com.google.android.material.progressindicator.CircularProgressIndicator
-                        android:id="@+id/progressServicios"
+                        android:id="@+id/progressRendimiento"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_gravity="center"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintTop_toTopOf="parent"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        android:layout_marginBottom="40dp"
                         app:indicatorSize="100dp"
                         app:trackThickness="8dp"
                         app:trackColor="@android:color/darker_gray"
-                        app:indicatorColor="@color/telo_orange"/>
+                        app:indicatorColor="@color/accept" />
 
                     <TextView
-                        android:id="@+id/tvServicios"
+                        android:id="@+id/tvProgressRendimiento"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_gravity="center"
-                        android:layout_marginTop="8dp"
-                        android:text="$125.0K / $250K\nFacturación"/>
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintTop_toTopOf="parent"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        android:layout_marginBottom="40dp"
+                        android:textStyle="bold"
+                        android:textSize="36sp"
+                        android:textColor="@android:color/black" />
 
-                </LinearLayout>
+                    <TextView
+                        android:id="@+id/tvRendimiento"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintTop_toBottomOf="@id/progressRendimiento"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        android:text="Rendimiento"
+                        android:textSize="16sp"
+                        android:textColor="@android:color/black"
+                        android:layout_marginTop="8dp" />
+
+                </androidx.constraintlayout.widget.ConstraintLayout>
             </com.google.android.material.card.MaterialCardView>
-
 
         </LinearLayout>
 
@@ -113,39 +155,71 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal">
-            <!-- Rendimiento -->
+            <!-- Evidencias -->
             <com.google.android.material.card.MaterialCardView
-                android:id="@+id/cardRendimiento"
+                android:id="@+id/cardServicios"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:layout_margin="8dp">
-
-                <LinearLayout
+                <TextView
+                    android:id="@+id/tvEvidenciastitle"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:padding="16dp">
+                    android:layout_marginTop="@dimen/common_padding_default"
+                    android:paddingBottom="@dimen/common_padding_default"
+                    android:textAlignment="center"
+                    android:textStyle="bold"
+                    android:textSize="@dimen/title_h2"
+                    android:text="Evidencias faltantes"/>
+
+                <androidx.constraintlayout.widget.ConstraintLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="40dp"
+                    android:padding="@dimen/common_padding_default">
 
                     <com.google.android.material.progressindicator.CircularProgressIndicator
-                        android:id="@+id/progressRendimiento"
+                        android:id="@+id/progressEvidencias"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_gravity="center"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintTop_toTopOf="parent"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        android:layout_marginBottom="40dp"
                         app:indicatorSize="100dp"
                         app:trackThickness="8dp"
-                        app:trackColor="@android:color/darker_gray"
-                        app:indicatorColor="@color/telo_orange"/>
+                        app:trackColor="@color/accept"
+                        app:indicatorColor="@color/warn" />
 
                     <TextView
-                        android:id="@+id/tvRendimiento"
+                        android:id="@+id/tvProgressEvidencias"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_gravity="center"
-                        android:layout_marginTop="8dp"
-                        android:text="$125.0K / $250K\nFacturación"/>
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintTop_toTopOf="parent"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        android:layout_marginBottom="40dp"
+                        android:textStyle="bold"
+                        android:textSize="36sp"
+                        android:textColor="@android:color/black" />
 
-                </LinearLayout>
+                    <TextView
+                        android:id="@+id/tvEvidencias"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintTop_toBottomOf="@id/progressEvidencias"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        android:text="Evidencias"
+                        android:textSize="16sp"
+                        android:textColor="@android:color/black"
+                        android:layout_marginTop="8dp" />
+
+                </androidx.constraintlayout.widget.ConstraintLayout>
             </com.google.android.material.card.MaterialCardView>
         </LinearLayout>
     </LinearLayout>
@@ -156,7 +230,7 @@
         android:id="@+id/cardError"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_margin="16dp"
+        android:layout_margin="@dimen/common_padding_default"
         android:visibility="gone"
         app:cardBackgroundColor="@color/warn"
         app:layout_constraintBottom_toBottomOf="parent">
@@ -165,7 +239,7 @@
             android:id="@+id/tvError"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:padding="16dp"
+            android:padding="@dimen/common_padding_default"
             android:textColor="@android:color/white"
             android:text=""/>
 
