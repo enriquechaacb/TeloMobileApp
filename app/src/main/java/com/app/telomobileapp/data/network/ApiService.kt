@@ -1,6 +1,7 @@
 package com.app.telomobileapp.data.network
 
 import com.app.telomobileapp.data.model.DashboardResponse
+import com.app.telomobileapp.data.model.EstadoCuentaResponse
 import com.app.telomobileapp.data.model.LoginCredentials
 import com.app.telomobileapp.data.model.LoginResponse
 import com.app.telomobileapp.data.model.ServicioActualResponse
@@ -45,6 +46,13 @@ interface ApiService {
         @Query("Cantidad") Cantidad: Int,
         @Query("Licencia") licencia: String
     ): List<ServicioHistoricoResponse>
+
+    @GET("Mobile/Operadores/EstadoCuenta/Carga")
+    suspend fun getEstadoCuenta(
+        @Query("FechaInicio") FechaInicio: String,
+        @Query("FechaFin") FechaFin: String,
+        @Query("Licencia") licencia: String
+    ): List<EstadoCuentaResponse>
 }
 
 

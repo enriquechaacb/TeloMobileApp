@@ -21,6 +21,12 @@
         android:theme="@style/Theme.TeloMobileApp"
         tools:targetApi="31">
         <activity
+            android:name=".ui.userprofile.Userprofile"
+            android:exported="false" />
+        <activity
+            android:name=".ui.accountstate.Accountstate"
+            android:exported="false" />
+        <activity
             android:name=".ui.service.ServiceSelectedDetail"
             android:exported="false" />
         <activity

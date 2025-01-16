@@ -14,9 +14,11 @@ import com.app.telomobileapp.data.session.SessionManager
 import com.app.telomobileapp.ui.login.Login
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import androidx.appcompat.widget.Toolbar
+import com.app.telomobileapp.ui.accountstate.Accountstate
 import com.app.telomobileapp.ui.main.MainActivity
 import com.app.telomobileapp.ui.service.ServiceCurrent
 import com.app.telomobileapp.ui.service.ServiceHistory
+import com.app.telomobileapp.ui.userprofile.Userprofile
 
 // BaseActivity.kt
 abstract class BaseActivity : AppCompatActivity() {
@@ -65,14 +67,14 @@ abstract class BaseActivity : AppCompatActivity() {
                     startActivity(Intent(this, ServiceHistory::class.java))
                     true
                 }
-//                R.id.navigation_account -> {
-//                    startActivity(Intent(this, AccountState::class.java))
-//                    true
-//                }
-//                R.id.navigation_profile -> {
-//                    startActivity(Intent(this, UserProfile::class.java))
-//                    true
-//                }
+                R.id.navigation_account -> {
+                    startActivity(Intent(this, Accountstate::class.java))
+                    true
+                }
+                R.id.navigation_profile -> {
+                    startActivity(Intent(this, Userprofile::class.java))
+                    true
+                }
                 else -> false
             }
         }

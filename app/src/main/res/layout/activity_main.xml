@@ -10,6 +10,21 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textAlignment="center"
+            android:text="Hola"
+            />
+        <TextView
+            android:id="@+id/tvNombreOperador"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="@dimen/title_h2"
+            android:textAlignment="center"
+            android:text="Hola"
+            />
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

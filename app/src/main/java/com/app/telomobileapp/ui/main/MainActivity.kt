@@ -36,6 +36,7 @@ class MainActivity : BaseActivity(), WebSocketCallback {
     private lateinit var sessionManager: SessionManager
     private lateinit var webSocketManager: WebSocketManager
     private var licencia: String = ""
+    private var Usuario: String? = ""
 
     override fun getLayoutResourceId(): Int = R.layout.activity_main
     override fun getActivityTitle(): String = "Dashboard"
@@ -46,6 +47,8 @@ class MainActivity : BaseActivity(), WebSocketCallback {
         binding = ActivityMainBinding.bind(findViewById(R.id.activity_main_container))
         sessionManager = SessionManager(this)
         licencia = sessionManager.getLicencia().toString()
+        Usuario = sessionManager.getNombreUsuario()
+        binding.tvNombreOperador.text = Usuario
         //setupWebSocket()
         loadDashboard()
     }
@@ -126,7 +129,11 @@ class MainActivity : BaseActivity(), WebSocketCallback {
                     ServEvFalt++
                 }
             }
-            binding.tvEvidencias.text = if (EvidenciasFaltantes > 0) "en ${ServEvFalt} servicios" else "Evidencias faltantes. ¡Excelente!"
+            binding.tvEvidencias.text = if (EvidenciasFaltantes > 0) {
+                "en ${ServEvFalt} servicio${if (ServEvFalt > 1) "s" else ""}"
+            } else {
+                "¡Excelente!"
+            }
 //            var progressRend = ((kml/rend)*100).toInt()
             val pr = if (EvidenciasFaltantes > 0) 100 else 0
             binding.progressEvidencias.progress = pr
