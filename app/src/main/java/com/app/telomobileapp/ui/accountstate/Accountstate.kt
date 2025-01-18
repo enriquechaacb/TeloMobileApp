@@ -5,25 +5,16 @@ import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
-import android.view.ViewGroup
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
-import android.widget.LinearLayout
 import android.widget.Spinner
 import android.widget.TextView
-import androidx.appcompat.app.AlertDialog
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
-import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
 import com.app.telomobileapp.R
 import com.app.telomobileapp.data.model.AnticipoResponse
-import com.app.telomobileapp.data.model.EstadoCuentaResponse
-import com.app.telomobileapp.data.model.EvidenciaResponse
 import com.app.telomobileapp.data.model.LiquidacionResponse
 import com.app.telomobileapp.data.model.PlanPagoResponse
-import com.app.telomobileapp.data.model.ServicioHistoricoResponse
-import com.app.telomobileapp.data.model.ServicioResponse
-import com.app.telomobileapp.data.model.UbicacionResponse
 import com.app.telomobileapp.data.network.ApiClient
 import com.app.telomobileapp.data.session.SessionManager
 import com.app.telomobileapp.databinding.ActivityAccountstateBinding
@@ -31,12 +22,10 @@ import com.app.telomobileapp.ui.base.BaseActivity
 import com.google.android.material.snackbar.Snackbar
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import retrofit2.HttpException
 import java.io.IOException
+import java.text.DecimalFormat
 import java.time.LocalDateTime
 import java.time.YearMonth
 import java.time.ZoneOffset
@@ -127,28 +116,41 @@ class Accountstate : BaseActivity() {
                     }
 
                 }
-                Log.d("EstadoDeCuenta","Consulta t ${type}: ${fi}-${ff} -- ${licencia}")
+
                 val estadoCuenta = ApiClient.apiService.getEstadoCuenta(fi,ff,licencia)
                 if (estadoCuenta.isEmpty()) {
                     showError("No se encontraron servicios en el rango de fechas seleccionado")
                 } else {
                     val estadoCuentaResponse = estadoCuenta[0]
 
-                    Log.d("EstadoDeCuenta","Procesado ${estadoCuentaResponse}")
-
-
                     // Liquidaciones -------------------------------------------------------------------------------
                     val sectionServices = binding.sectionServices
                     val contentServices = binding.contentServices
                     val typeLiquidation = object : TypeToken<List<LiquidacionResponse>>() {}.type
                     try {
-                        val anticipos: List<LiquidacionResponse> = gson.fromJson(estadoCuentaResponse.JsonPagado, typeLiquidation)
-                        anticipos.forEach { x ->
+                        val pagados: List<LiquidacionResponse> = gson.fromJson(estadoCuentaResponse.JsonPagado, typeLiquidation)
+                        val porpagar: List<LiquidacionResponse> = gson.fromJson(estadoCuentaResponse.JsonPorPagar, typeLiquidation)
+                        val liquidaciones = porpagar + pagados
+                        liquidaciones.forEach { x ->
                             val advView = LayoutInflater.from(this@Accountstate).inflate(R.layout.item_liquidation, contentServices, false)
-                            advView.findViewById<TextView>(R.id.tvReferencia).text = "${x.Referencia}"
-                            advView.findViewById<TextView>(R.id.tvConcepto).text = "${x.ConceptoLiquidacion}"
-                            advView.findViewById<TextView>(R.id.tvMonto).text = "$${x.Monto}"
-                            advView.findViewById<TextView>(R.id.tvFechaFinViaje).text = "${x.FechaFinVIaje}"
+
+                            with(advView) {
+                                val tvMonto = findViewById<TextView>(R.id.tvMonto)
+                                findViewById<TextView>(R.id.tvReferencia).text = "Servicio ${x.Referencia}"
+                                findViewById<TextView>(R.id.tvConcepto).text = x.ConceptoLiquidacion
+                                tvMonto.text = formatMoney(x.Monto)
+                                findViewById<TextView>(R.id.tvFechaFinViaje).text = "Finalizado el ${formatDate(x.FechaFinViaje)}"
+                                findViewById<TextView>(R.id.tvNomina).text = if(x.Nomina.isNullOrEmpty()) "Status: Pendiente" else "Procesado en nómina ${x.Nomina} el ${formatDate(x.FechaNomina)}"
+
+                                tvMonto.setTextColor(
+                                    ContextCompat.getColor(context,
+                                        if (x.Monto.toDouble() < 0) R.color.warn
+                                        else R.color.accept
+                                    )
+                                )
+
+                            }
+
                             contentServices.addView(advView)
                         }
                     } catch (e: Exception) {
@@ -166,9 +168,9 @@ class Accountstate : BaseActivity() {
                             val advView = LayoutInflater.from(this@Accountstate).inflate(R.layout.item_advance, contentAdvances, false)
                             advView.findViewById<TextView>(R.id.tvConcepto).text = "${x.IdAnticipo} ${x.Concepto}"
                             advView.findViewById<TextView>(R.id.tvTransferencia).text = "Transferido el: ${formatDate(x.FechaHoraTransferido)} ref. ${x.ReferenciaTransferencia}"
-                            advView.findViewById<TextView>(R.id.tvMonto).text = "Monto: $${x.Monto}"
-                            advView.findViewById<TextView>(R.id.tvMontoComprobado).text = "Comprobado: $${x.MontoComprobado}"
-                            advView.findViewById<TextView>(R.id.tvSaldo).text = "Saldo: $${x.Saldo}"
+                            advView.findViewById<TextView>(R.id.tvMonto).text = "Monto: ${formatMoney(x.Monto)}"
+                            advView.findViewById<TextView>(R.id.tvMontoComprobado).text = "Comprobado: ${formatMoney(x.MontoComprobado)}"
+                            advView.findViewById<TextView>(R.id.tvSaldo).text = "${formatMoney(x.Saldo)}"
                             contentAdvances.addView(advView)
                         }
                     } catch (e: Exception) {
@@ -187,9 +189,9 @@ class Accountstate : BaseActivity() {
                             Log.i("EstadoDeCuenta","JSON PLAN PAGO ${x}")
                             val advView = LayoutInflater.from(this@Accountstate).inflate(R.layout.item_debts, contentDebts, false)
                             advView.findViewById<TextView>(R.id.tvPlanPago).text = "${x.IdPlanPago} - ${x.DetallePlanPago}"
-                            advView.findViewById<TextView>(R.id.tvFechaAlta).text = "Transferido el: ${x.FechaAlta}"
-                            advView.findViewById<TextView>(R.id.tvMonto).text = "Monto de pago: $${x.Monto}"
-                            advView.findViewById<TextView>(R.id.tvSaldo).text = "Saldo: $${x.Saldo}"
+                            advView.findViewById<TextView>(R.id.tvFechaAlta).text = "Transferido el: ${formatDate(x.FechaAlta)}"
+                            advView.findViewById<TextView>(R.id.tvMonto).text = "Monto de pago: ${formatMoney(x.Monto)}"
+                            advView.findViewById<TextView>(R.id.tvSaldo).text = "Saldo: ${formatMoney(x.Saldo)}"
                             advView.findViewById<TextView>(R.id.tvPagos).text = "Pago actual: ${x.PagoActual} de ${x.PagosDiferidos}"
                             contentDebts.addView(advView)
                         }
@@ -197,16 +199,6 @@ class Accountstate : BaseActivity() {
                         println("Error al convertir el JSON: ${e.message}")
                         Log.e("EstadoDeCuenta","Error de JSON PlanesPago ${e.message}")
                     }
-
-
-
-
-//
-//                    binding.accountRecyclerView.apply {
-//                        layoutManager = LinearLayoutManager(this@Accountstate)
-//                        adapter = CuentasAdapter(this@Accountstate, estadoCuenta, sessionManager)
-//                    }
-//                    binding.accountRecyclerView.visibility = View.VISIBLE
 
                     val allSections = listOf(contentServices, contentAdvances, contentDebts)
                     sectionServices.setOnClickListener {
@@ -229,16 +221,24 @@ class Accountstate : BaseActivity() {
         }
     }
     private fun toggleSection(selectedSection: View, allSections: List<View>) {
-        // Si la sección seleccionada ya está visible, oculta todas
-        if (selectedSection.visibility == View.VISIBLE) {
-            allSections.forEach { section ->
-                section.visibility = View.GONE // Oculta todas las secciones
-            }
-        } else {
-            // De lo contrario, oculta todas menos la seleccionada
-            allSections.forEach { section ->
-                section.visibility = if (section == selectedSection) View.VISIBLE else View.GONE
-            }
+        // Determinar si debemos mostrar u ocultar
+        val newVisibility = if (selectedSection.visibility == View.VISIBLE) View.GONE else View.VISIBLE
+
+        // Actualizar visibilidad de todas las secciones
+        allSections.forEach { section ->
+            section.visibility = if (section == selectedSection) newVisibility else View.GONE
+        }
+
+        // Mapeo de contenidos con sus botones correspondientes
+        val contentButtonPairs = listOf(
+            binding.contentServices to binding.sectionServices,
+            binding.contentAdvances to binding.sectionAdvances,
+            binding.contentDebts to binding.sectionDebts
+        )
+
+        // Actualizar el estado de selección de los botones
+        contentButtonPairs.forEach { (content, button) ->
+            button.isSelected = content.visibility == View.VISIBLE
         }
     }
     private fun showError(message: String) {
@@ -254,9 +254,17 @@ class Accountstate : BaseActivity() {
             "Formato de fecha inválido" // Manejo de errores si el análisis falla
         }
     }
+    private fun formatMoney(number: Double): String {
+        val formatter = DecimalFormat("$#,##0.00")
+        return if (number < 0) {
+            "-${formatter.format(kotlin.math.abs(number))}"
+        } else {
+            formatter.format(number)
+        }
+    }
 
     // Adapter para la lista de servicios
-    class CuentasAdapter(
+    /*class CuentasAdapter(
         private val context: Context,
         private val servicios: List<EstadoCuentaResponse>,
         private var sessionManager: SessionManager
@@ -306,137 +314,6 @@ class Accountstate : BaseActivity() {
                 }
             }
         }
-        /*
-        private fun showServiceDetails(service: ServicioResponse){
-            Log.d("ServicioSeleccionado","service = ${service}")
-            val gson = Gson()
-            val dialogView = LayoutInflater.from(context).inflate(R.layout.activity_service_selected_detail, null)
-            //Crear el diálogo
-            val builder = AlertDialog.Builder(context)
-                .setView(dialogView)
-                .setTitle("Detalles del servicio ${service.Referencia}")
-                .setNegativeButton("Cerrar", null)
-            val dialog = builder.create()
-
-            // Configurar referencias de vistas
-            val tvOrigen = dialogView.findViewById<TextView>(R.id.tvOrigen)
-            val tvDestino = dialogView.findViewById<TextView>(R.id.tvDestino)
-
-            // Ubicaciones ----------------------------------------------------------------------------
-            val sectionStops = dialogView.findViewById<TextView>(R.id.sectionStops)
-            val contentStops = dialogView.findViewById<LinearLayout>(R.id.contentStops)
-            val typeStops = object : TypeToken<List<UbicacionResponse>>() {}.type
-            try {
-                val ubicaciones: List<UbicacionResponse> =
-                    gson.fromJson(service.JsonUbicaciones, typeStops)
-                if (ubicaciones.isNotEmpty()) {
-                    tvOrigen.text = "Origen ${ubicaciones[0].Nombre}"
-                    tvDestino.text = "Destino ${ubicaciones[ubicaciones.size - 1].Nombre}"
-                } else {
-                    tvOrigen.text = "Origen no disponible"
-                    tvDestino.text = "Destino no disponible"
-                }
-                ubicaciones.forEach { x ->
-                    val stopView =
-                        LayoutInflater.from(context).inflate(R.layout.item_stop, contentStops, false)
-                    stopView.findViewById<TextView>(R.id.tvTipoMovimiento).text = x.TipoMovimientoViaje
-                    stopView.findViewById<TextView>(R.id.tvNombre).text = x.Nombre
-                    stopView.findViewById<TextView>(R.id.tvDomicilio).text = x.Domicilio
-                    contentStops.addView(stopView)
-                }
-            } catch (e: Exception) {
-                println("Error al convertir el JSON: ${e.message}")
-                Log.e("EstadoDeCuenta","Error de JSON Ubicaciones ${e.message}")
-            }
-
-            // Anticipos -------------------------------------------------------------------------------
-            val sectionAdvances = dialogView.findViewById<TextView>(R.id.sectionAdvances)
-            val contentAdvances = dialogView.findViewById<LinearLayout>(R.id.contentAdvances)
-            val typeAdvance = object : TypeToken<List<AnticipoResponse>>() {}.type
-            try {
-                val anticipos: List<AnticipoResponse> = gson.fromJson(service.JsonAnticipos, typeAdvance)
-                Log.i("EstadoDeCuenta","JSON ANTICIPOS ${anticipos}")
-                anticipos.forEach { x ->
-                    val advView = LayoutInflater.from(context).inflate(R.layout.item_advance, contentAdvances, false)
-                    advView.findViewById<TextView>(R.id.tvConcepto).text = "${x.IdAnticipo} ${x.Concepto}"
-                    advView.findViewById<TextView>(R.id.tvTransferencia).text = "Transferido el: ${formatDate(x.FechaHoraTransferido)} ref. ${x.ReferenciaTransferencia}"
-                    advView.findViewById<TextView>(R.id.tvMonto).text = "Monto: $${x.Monto}"
-                    advView.findViewById<TextView>(R.id.tvMontoComprobado).text = "Comprobado: $${x.MontoComprobado}"
-                    advView.findViewById<TextView>(R.id.tvSaldo).text = "Saldo: $${x.Saldo}"
-                    contentAdvances.addView(advView)
-                }
-            } catch (e: Exception) {
-                println("Error al convertir el JSON: ${e.message}")
-                Log.e("EstadoDeCuenta","Error de JSON Anticipos ${e.message}")
-            }
-
-            // Evidencias -------------------------------------------------------------------------------
-            val sectionEvidences = dialogView.findViewById<TextView>(R.id.sectionEvidences)
-            val contentEvidences = dialogView.findViewById<LinearLayout>(R.id.contentEvidences)
-            val typeEvidence = object : TypeToken<List<EvidenciaResponse>>() {}.type
-            try {
-                val evidencias: List<EvidenciaResponse> = gson.fromJson(service.JsonEvidencias, typeEvidence)
-                evidencias.forEach { x ->
-                    val evidView = LayoutInflater.from(context).inflate(R.layout.item_evidence, contentEvidences, false)
-                    val tvRecibido = evidView.findViewById<TextView>(R.id.tvRecibido)
-                    // Nombre
-                    val tvNombre = evidView.findViewById<TextView>(R.id.tvNombre)
-                    if (!x.Nombre.isNullOrEmpty()) {
-                        tvNombre.text = x.Nombre
-                    } else {
-                        tvNombre.visibility = View.GONE
-                    }
-
-                    // Fecha Recibido
-                    val tvFechaRecibido = evidView.findViewById<TextView>(R.id.tvFechaRecibido)
-                    if (!x.FechaRecibido.isNullOrEmpty()) {
-                        tvFechaRecibido.text = x.FechaRecibido
-                        tvRecibido.visibility = View.GONE
-                    } else {
-                        tvFechaRecibido.visibility = View.GONE
-                        tvRecibido.visibility = View.VISIBLE
-                    }
-
-                    // Usuario Recibe
-                    val tvUsuarioRecibe = evidView.findViewById<TextView>(R.id.tvUsuarioRecibe)
-                    if (!x.UsuarioRecibe.isNullOrEmpty()) {
-                        tvUsuarioRecibe.text = x.UsuarioRecibe
-                    } else {
-                        tvUsuarioRecibe.visibility = View.GONE
-                    }
-
-                    // URL Documento
-                    val tvUrlDocumento = evidView.findViewById<TextView>(R.id.tvUrlDocumento)
-                    if (!x.UrlDocumento.isNullOrEmpty()) {
-                        tvUrlDocumento.text = x.UrlDocumento
-                    } else {
-                        tvUrlDocumento.visibility = View.GONE
-                    }
-
-                    // Agregar la vista al contenedor
-                    contentEvidences.addView(evidView)
-                }
-
-            } catch (e: Exception) {
-                println("Error al convertir el JSON: ${e.message}")
-                Log.e("EstadoDeCuenta","Error de JSON Evidencias ${e.message}")
-            }
-
-            val allSections = listOf(contentStops, contentAdvances, contentEvidences)
-            sectionStops.setOnClickListener {
-                toggleSection(contentStops, allSections)
-            }
-            sectionAdvances.setOnClickListener {
-                toggleSection(contentAdvances, allSections)
-            }
-            sectionEvidences.setOnClickListener {
-                toggleSection(contentEvidences, allSections)
-            }
-
-            // Mostrar el diálogo
-            dialog.show()
-        }
-        */
 
         private fun toggleSection(selectedSection: View, allSections: List<View>) {
             // Si la sección seleccionada ya está visible, oculta todas
@@ -460,5 +337,5 @@ class Accountstate : BaseActivity() {
                 "Formato de fecha inválido" // Manejo de errores si el análisis falla
             }
         }
-    }
+    }*/
 }

@@ -10,5 +10,7 @@ data class LiquidacionResponse (
     val ConceptoLiquidacion: String,
     val Monto: Double,
     val Referencia: String,
-    val FechaFinVIaje: String
+    val FechaFinViaje: String,
+    val Nomina: String,
+    val FechaNomina: String
 )

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Widget.App.Button.OutlinedButton" parent="Widget.MaterialComponents.Button.OutlinedButton">
+        <item name="materialThemeOverlay">@style/ThemeOverlay.App.Button.Orange</item>
+        <item name="android:textColor">@color/button_text_selector</item>
+        <item name="strokeColor">@color/telo_orange</item>
+        <item name="cornerRadius">20dp</item>
+        <item name="backgroundTint">@color/button_background_selector</item>
+    </style>
+
+    <style name="ThemeOverlay.App.Button.Orange" parent="">
+        <item name="colorPrimary">@color/telo_orange</item>
+    </style>
+</resources>

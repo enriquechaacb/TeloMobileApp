@@ -1,40 +1,67 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="vertical"
-    android:padding="8dp">
+    android:layout_marginBottom="8dp">
 
-    <TextView
-        android:id="@+id/tvConcepto"
-        android:layout_width="wrap_content"
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Id"
-        android:textStyle="bold"
-        android:textSize="16sp"
-        android:layout_marginBottom="4dp" />
+        android:orientation="horizontal"
+        android:padding="@dimen/common_padding_default">
 
-    <TextView
-        android:id="@+id/tvTransferencia"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Transferencia" />
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+            <TextView
+                android:id="@+id/tvConcepto"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Id"
+                android:textStyle="bold"
+                android:textSize="16sp"
+                android:layout_marginBottom="4dp" />
 
-    <TextView
-        android:id="@+id/tvMonto"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Monto" />
+            <TextView
+                android:id="@+id/tvTransferencia"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Transferencia" />
 
-    <TextView
-        android:id="@+id/tvMontoComprobado"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="MontoComprobado" />
+            <TextView
+                android:id="@+id/tvMonto"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Monto" />
 
-    <TextView
-        android:id="@+id/tvSaldo"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Saldo" />
-</LinearLayout>
+            <TextView
+                android:id="@+id/tvMontoComprobado"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="MontoComprobado" />
+        </LinearLayout>
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_gravity="center">
+            <TextView
+                android:id="@+id/tvSaldoText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textAlignment="center"
+                android:text="Saldo:"/>
+            <TextView
+                android:id="@+id/tvSaldo"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Saldo"
+                android:textStyle="bold"
+                android:textSize="24sp"/>
+        </LinearLayout>
+    </LinearLayout>
+
+</com.google.android.material.card.MaterialCardView>

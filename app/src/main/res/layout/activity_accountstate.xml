@@ -18,22 +18,26 @@
             android:layout_height="wrap_content"
             android:orientation="horizontal">
 
-            <Button
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/sectionServices"
-                android:layout_width="0dp"
+                style="@style/Widget.App.Button.OutlinedButton"
+                android:layout_width="130dp"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
+                android:layout_marginEnd="8dp"
                 android:text="Comisiones"/>
 
-            <Button
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/sectionAdvances"
+                style="@style/Widget.App.Button.OutlinedButton"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
+                android:layout_marginEnd="8dp"
                 android:text="Gastos"/>
 
-            <Button
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/sectionDebts"
+                style="@style/Widget.App.Button.OutlinedButton"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
