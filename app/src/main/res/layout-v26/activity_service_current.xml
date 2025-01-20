@@ -95,23 +95,28 @@
                     android:layout_weight="0"
                     android:layout_marginStart="8dp"
                     android:orientation="vertical">
-                    <ImageButton
+
+                    <com.google.android.material.floatingactionbutton.FloatingActionButton
                         android:id="@+id/detailButton"
-                        android:layout_width="64dp"
-                        android:layout_height="64dp"
-                        android:src="@drawable/ic_detail"
-                        android:scaleType="center"
-                        android:backgroundTint="@color/telo_orange"
-                        android:layout_gravity="center" />
-                    <ImageButton
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_margin="8dp"
+                        android:contentDescription="Detalle del servicio"
+                        app:srcCompat="@drawable/ic_detail"
+                        app:fabSize="normal"
+                        app:backgroundTint="@color/telo_orange"
+                        app:tint="@color/white" />
+
+                    <com.google.android.material.floatingactionbutton.FloatingActionButton
                         android:id="@+id/historyButton"
-                        android:layout_width="64dp"
-                        android:layout_height="64dp"
-                        android:src="@drawable/ic_history"
-                        android:scaleType="center"
-                        android:backgroundTint="@color/telo_gray"
-                        app:tint="@color/white"
-                        android:layout_gravity="center" />
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_margin="8dp"
+                        android:contentDescription="Detalle del servicio"
+                        app:srcCompat="@drawable/ic_history"
+                        app:fabSize="normal"
+                        app:backgroundTint="@color/telo_gray"
+                        app:tint="@color/white" />
 
                 </LinearLayout>
 
