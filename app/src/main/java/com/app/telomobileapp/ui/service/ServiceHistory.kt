@@ -16,6 +16,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.app.telomobileapp.R
+import com.app.telomobileapp.data.local.PreferenceManager
 import com.app.telomobileapp.data.model.AnticipoResponse
 import com.app.telomobileapp.data.model.EvidenciaResponse
 import com.app.telomobileapp.data.network.ApiClient
@@ -34,6 +35,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import retrofit2.HttpException
 import java.io.IOException
+import java.text.DecimalFormat
 import java.time.LocalDateTime
 import java.time.ZonedDateTime
 import java.time.temporal.ChronoUnit
@@ -53,7 +55,7 @@ class ServiceHistory : BaseActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityServiceHistoryBinding.bind(findViewById(R.id.service_history_container))
         sessionManager = SessionManager(this)
-        licencia = sessionManager.getLicencia().toString()
+        licencia = PreferenceManager(context = this@ServiceHistory).getLicencia().toString()
         loadServicesGrid()
         val spinner = findViewById<Spinner>(R.id.spinnerFiltro)
         ArrayAdapter.createFromResource(
@@ -191,7 +193,7 @@ class ServiceHistory : BaseActivity() {
         private fun getServiceDetail(id: Int){
             CoroutineScope(Dispatchers.IO).launch {
                 try {
-                    val licencia = sessionManager.getLicencia().toString()
+                    val licencia = PreferenceManager(context).getLicencia().toString()
                     val servicio = ApiClient.apiService.getServicio(id, licencia)[0]
                     withContext(Dispatchers.Main) {
                         showServiceDetails(servicio)
@@ -254,9 +256,9 @@ class ServiceHistory : BaseActivity() {
                     val advView = LayoutInflater.from(context).inflate(R.layout.item_advance, contentAdvances, false)
                     advView.findViewById<TextView>(R.id.tvConcepto).text = "${x.IdAnticipo} ${x.Concepto}"
                     advView.findViewById<TextView>(R.id.tvTransferencia).text = "Transferido el: ${formatDate(x.FechaHoraTransferido)} ref. ${x.ReferenciaTransferencia}"
-                    advView.findViewById<TextView>(R.id.tvMonto).text = "Monto: $${x.Monto}"
-                    advView.findViewById<TextView>(R.id.tvMontoComprobado).text = "Comprobado: $${x.MontoComprobado}"
-                    advView.findViewById<TextView>(R.id.tvSaldo).text = "Saldo: $${x.Saldo}"
+                    advView.findViewById<TextView>(R.id.tvMonto).text = "Monto: ${formatMoney(x.Monto)}"
+                    advView.findViewById<TextView>(R.id.tvMontoComprobado).text = "Comprobado: ${formatMoney(x.MontoComprobado)}"
+                    advView.findViewById<TextView>(R.id.tvSaldo).text = "${formatMoney(x.Saldo)}"
                     contentAdvances.addView(advView)
                 }
             } catch (e: Exception) {
@@ -285,6 +287,7 @@ class ServiceHistory : BaseActivity() {
                     val tvFechaRecibido = evidView.findViewById<TextView>(R.id.tvFechaRecibido)
                     if (!x.FechaRecibido.isNullOrEmpty()) {
                         tvFechaRecibido.text = x.FechaRecibido
+                        tvFechaRecibido.visibility = View.VISIBLE
                         tvRecibido.visibility = View.GONE
                     } else {
                         tvFechaRecibido.visibility = View.GONE
@@ -295,6 +298,7 @@ class ServiceHistory : BaseActivity() {
                     val tvUsuarioRecibe = evidView.findViewById<TextView>(R.id.tvUsuarioRecibe)
                     if (!x.UsuarioRecibe.isNullOrEmpty()) {
                         tvUsuarioRecibe.text = x.UsuarioRecibe
+                        tvUsuarioRecibe.visibility = View.VISIBLE
                     } else {
                         tvUsuarioRecibe.visibility = View.GONE
                     }
@@ -303,6 +307,7 @@ class ServiceHistory : BaseActivity() {
                     val tvUrlDocumento = evidView.findViewById<TextView>(R.id.tvUrlDocumento)
                     if (!x.UrlDocumento.isNullOrEmpty()) {
                         tvUrlDocumento.text = x.UrlDocumento
+                        tvUrlDocumento.visibility = View.VISIBLE
                     } else {
                         tvUrlDocumento.visibility = View.GONE
                     }
@@ -350,6 +355,14 @@ class ServiceHistory : BaseActivity() {
                 dateTime.format(formatter) // Devuelve la fecha formateada
             } catch (e: Exception) {
                 "Formato de fecha inválido" // Manejo de errores si el análisis falla
+            }
+        }
+        private fun formatMoney(number: Double): String {
+            val formatter = DecimalFormat("$#,##0.00")
+            return if (number < 0) {
+                "-${formatter.format(kotlin.math.abs(number))}"
+            } else {
+                formatter.format(number)
             }
         }
     }

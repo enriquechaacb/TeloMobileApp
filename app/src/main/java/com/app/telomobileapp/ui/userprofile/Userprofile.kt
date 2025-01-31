@@ -10,6 +10,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.app.telomobileapp.R
+import com.app.telomobileapp.data.local.PreferenceManager
 import com.app.telomobileapp.data.session.SessionManager
 import com.app.telomobileapp.databinding.ActivityAccountstateBinding
 import com.app.telomobileapp.databinding.ActivityUserprofileBinding
@@ -26,7 +27,7 @@ class Userprofile : BaseActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityUserprofileBinding.bind(findViewById(R.id.user_profile_container))
         sessionManager = SessionManager(this)
-        licencia = sessionManager.getLicencia().toString()
+        licencia = PreferenceManager(context = this@Userprofile).getLicencia().toString()
         //loadAccountGrid()
 //        val spinner = findViewById<Spinner>(R.id.spinnerFiltro)
 //        ArrayAdapter.createFromResource(

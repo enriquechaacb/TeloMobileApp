@@ -4,7 +4,8 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:padding="@dimen/common_padding_default"
-    android:id="@+id/activity_main_container">
+    android:id="@+id/activity_main_container"
+    android:background="@color/telo_dark_gray">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -15,6 +16,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:textAlignment="center"
+            android:textColor="@color/telo_gray"
             android:text="Hola"
             />
         <TextView
@@ -23,7 +25,8 @@
             android:layout_height="wrap_content"
             android:textSize="@dimen/title_h2"
             android:textAlignment="center"
-            android:text="Hola"
+            android:textColor="@color/white"
+            android:text="Nombre"
             />
         <LinearLayout
             android:layout_width="match_parent"
@@ -34,9 +37,10 @@
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/cardFacturacion"
                 android:layout_width="0dp"
-                android:layout_height="240dp"
+                android:layout_height="@dimen/dashboard_item_height"
                 android:layout_weight="1"
-                android:layout_margin="8dp">
+                android:layout_margin="8dp"
+                android:padding="@dimen/common_padding_default">
                 <TextView
                     android:id="@+id/tvFacturaciontitle"
                     android:layout_width="match_parent"
@@ -51,7 +55,7 @@
                 <androidx.constraintlayout.widget.ConstraintLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
+                    android:layout_marginTop="24dp"
                     android:padding="@dimen/common_padding_default">
 
                     <com.google.android.material.progressindicator.CircularProgressIndicator
@@ -62,7 +66,6 @@
                         app:layout_constraintEnd_toEndOf="parent"
                         app:layout_constraintTop_toTopOf="parent"
                         app:layout_constraintBottom_toBottomOf="parent"
-                        android:layout_marginBottom="40dp"
                         app:indicatorSize="100dp"
                         app:trackThickness="8dp"
                         app:trackColor="@android:color/darker_gray"
@@ -76,34 +79,43 @@
                         app:layout_constraintEnd_toEndOf="parent"
                         app:layout_constraintTop_toTopOf="parent"
                         app:layout_constraintBottom_toBottomOf="parent"
+                        android:layout_marginTop="40dp"
                         android:layout_marginBottom="40dp"
                         android:textStyle="bold"
                         android:textSize="36sp"
                         android:textColor="@android:color/black" />
 
-                    <TextView
-                        android:id="@+id/tvFacturacion"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintEnd_toEndOf="parent"
-                        app:layout_constraintTop_toBottomOf="@id/progressFacturacion"
-                        app:layout_constraintBottom_toBottomOf="parent"
-                        android:text="Facturación"
-                        android:textSize="16sp"
-                        android:textColor="@android:color/black"
-                        android:layout_marginTop="8dp" />
-
                 </androidx.constraintlayout.widget.ConstraintLayout>
+                <TextView
+                    android:id="@+id/tvFacturacion"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textSize="20sp"
+                    android:textStyle="bold"
+                    android:textAlignment="center"
+                    android:textColor="@android:color/black"
+                    android:layout_marginTop="160dp"
+                    android:text="Facturación" />
+
+                <TextView
+                    android:id="@+id/tvFacturacionEsperada"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="FacturaciónEsperada"
+                    android:textSize="16sp"
+                    android:textAlignment="center"
+                    android:textColor="@android:color/black"
+                    android:layout_marginTop="188dp" />
             </com.google.android.material.card.MaterialCardView>
 
             <!-- Rendimiento -->
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/cardRendimiento"
                 android:layout_width="0dp"
-                android:layout_height="240dp"
+                android:layout_height="@dimen/dashboard_item_height"
                 android:layout_weight="1"
-                android:layout_margin="8dp">
+                android:layout_margin="8dp"
+                android:padding="@dimen/common_padding_default">
                 <TextView
                     android:id="@+id/tvRendimientotitle"
                     android:layout_width="match_parent"
@@ -129,7 +141,6 @@
                         app:layout_constraintEnd_toEndOf="parent"
                         app:layout_constraintTop_toTopOf="parent"
                         app:layout_constraintBottom_toBottomOf="parent"
-                        android:layout_marginBottom="40dp"
                         app:indicatorSize="100dp"
                         app:trackThickness="8dp"
                         app:trackColor="@android:color/darker_gray"
@@ -143,25 +154,35 @@
                         app:layout_constraintEnd_toEndOf="parent"
                         app:layout_constraintTop_toTopOf="parent"
                         app:layout_constraintBottom_toBottomOf="parent"
+                        android:layout_marginTop="40dp"
                         android:layout_marginBottom="40dp"
                         android:textStyle="bold"
                         android:textSize="36sp"
                         android:textColor="@android:color/black" />
 
-                    <TextView
-                        android:id="@+id/tvRendimiento"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintEnd_toEndOf="parent"
-                        app:layout_constraintTop_toBottomOf="@id/progressRendimiento"
-                        app:layout_constraintBottom_toBottomOf="parent"
-                        android:text="Rendimiento"
-                        android:textSize="16sp"
-                        android:textColor="@android:color/black"
-                        android:layout_marginTop="8dp" />
-
                 </androidx.constraintlayout.widget.ConstraintLayout>
+
+                <TextView
+                    android:id="@+id/tvRendimientoMin"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textSize="16sp"
+                    android:textAlignment="center"
+                    android:textColor="@android:color/black"
+                    android:layout_marginTop="160dp"
+                    android:text="Mínimo:" />
+
+                <TextView
+                    android:id="@+id/tvRendimiento"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textSize="20sp"
+                    android:textStyle="bold"
+                    android:textAlignment="center"
+                    android:textColor="@android:color/black"
+                    android:layout_marginTop="180dp"
+                    android:text="Rendimiento" />
+
             </com.google.android.material.card.MaterialCardView>
 
         </LinearLayout>
@@ -174,9 +195,10 @@
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/cardServicios"
                 android:layout_width="0dp"
-                android:layout_height="wrap_content"
+                android:layout_height="@dimen/dashboard_item_height"
                 android:layout_weight="1"
-                android:layout_margin="8dp">
+                android:layout_margin="8dp"
+                android:padding="@dimen/common_padding_default">
                 <TextView
                     android:id="@+id/tvEvidenciastitle"
                     android:layout_width="match_parent"
@@ -191,22 +213,21 @@
                 <androidx.constraintlayout.widget.ConstraintLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="40dp"
+                    android:layout_marginTop="24dp"
                     android:padding="@dimen/common_padding_default">
 
                     <com.google.android.material.progressindicator.CircularProgressIndicator
                         android:id="@+id/progressEvidencias"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintEnd_toEndOf="parent"
-                        app:layout_constraintTop_toTopOf="parent"
-                        app:layout_constraintBottom_toBottomOf="parent"
-                        android:layout_marginBottom="40dp"
+                        app:indicatorColor="@color/warn"
                         app:indicatorSize="100dp"
-                        app:trackThickness="8dp"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toTopOf="parent"
                         app:trackColor="@color/accept"
-                        app:indicatorColor="@color/warn" />
+                        app:trackThickness="8dp" />
 
                     <TextView
                         android:id="@+id/tvProgressEvidencias"
@@ -216,29 +237,27 @@
                         app:layout_constraintEnd_toEndOf="parent"
                         app:layout_constraintTop_toTopOf="parent"
                         app:layout_constraintBottom_toBottomOf="parent"
+                        android:layout_marginTop="40dp"
                         android:layout_marginBottom="40dp"
                         android:textStyle="bold"
                         android:textSize="36sp"
                         android:textColor="@android:color/black" />
 
-                    <TextView
-                        android:id="@+id/tvEvidencias"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintEnd_toEndOf="parent"
-                        app:layout_constraintTop_toBottomOf="@id/progressEvidencias"
-                        app:layout_constraintBottom_toBottomOf="parent"
-                        android:text="Evidencias"
-                        android:textSize="16sp"
-                        android:textColor="@android:color/black"
-                        android:layout_marginTop="8dp" />
-
                 </androidx.constraintlayout.widget.ConstraintLayout>
+
+                <TextView
+                    android:id="@+id/tvEvidencias"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textSize="20sp"
+                    android:textStyle="bold"
+                    android:textAlignment="center"
+                    android:textColor="@android:color/black"
+                    android:layout_marginTop="160dp"
+                    android:text="Evidencias" />
             </com.google.android.material.card.MaterialCardView>
         </LinearLayout>
     </LinearLayout>
-
 
     <!-- Mensaje de error -->
     <com.google.android.material.card.MaterialCardView
@@ -248,16 +267,16 @@
         android:layout_margin="@dimen/common_padding_default"
         android:visibility="gone"
         app:cardBackgroundColor="@color/warn"
-        app:layout_constraintBottom_toBottomOf="parent">
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
 
         <TextView
             android:id="@+id/tvError"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:padding="@dimen/common_padding_default"
-            android:textColor="@android:color/white"
-            android:text=""/>
+            android:text=""
+            android:textColor="@android:color/white" />
 
     </com.google.android.material.card.MaterialCardView>
-
 </androidx.constraintlayout.widget.ConstraintLayout>

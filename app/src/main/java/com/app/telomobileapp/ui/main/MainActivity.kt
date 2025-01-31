@@ -8,27 +8,22 @@ import com.google.gson.Gson
 import kotlinx.coroutines.launch
 import com.app.telomobileapp.databinding.ActivityMainBinding
 import com.app.telomobileapp.data.model.DashboardResponse
-import com.app.telomobileapp.data.model.FacturacionData
-import com.app.telomobileapp.data.model.ServiciosData
-import com.app.telomobileapp.data.model.RendimientoData
 import com.app.telomobileapp.data.model.PendientesData
 import com.app.telomobileapp.data.network.ApiClient
-//import com.app.telomobileapp.data.network.WebSocketManager
 import WebSocketManager
 import WebSocketCallback
 import com.app.telomobileapp.data.session.SessionManager
-import androidx.lifecycle.lifecycleScope
 import com.app.telomobileapp.R
+import com.app.telomobileapp.data.local.DeviceIdentifier
+import com.app.telomobileapp.data.local.PreferenceManager
 import com.app.telomobileapp.data.model.EvidenciaResponse
 import com.app.telomobileapp.data.model.FacturacionResponse
 import com.app.telomobileapp.data.model.RendimientoResponse
-import com.app.telomobileapp.data.model.UbicacionResponse
-import com.app.telomobileapp.databinding.ActivityServiceHistoryBinding
 import com.app.telomobileapp.ui.base.BaseActivity
 import com.google.gson.reflect.TypeToken
-import kotlinx.coroutines.launch
 import java.math.BigDecimal
 import java.math.RoundingMode
+import java.text.DecimalFormat
 
 
 class MainActivity : BaseActivity(), WebSocketCallback {
@@ -46,11 +41,13 @@ class MainActivity : BaseActivity(), WebSocketCallback {
         //binding = ActivityMainBinding.inflate(layoutInflater)
         binding = ActivityMainBinding.bind(findViewById(R.id.activity_main_container))
         sessionManager = SessionManager(this)
-        licencia = sessionManager.getLicencia().toString()
+        licencia = PreferenceManager(context = this@MainActivity).getLicencia().toString()
         Usuario = sessionManager.getNombreUsuario()
         binding.tvNombreOperador.text = Usuario
         //setupWebSocket()
         loadDashboard()
+
+        val deviceId = DeviceIdentifier(context = this).getDeviceId()
     }
 
     private fun setupWebSocket() {
@@ -87,7 +84,8 @@ class MainActivity : BaseActivity(), WebSocketCallback {
                 TotalFacturado += fact.TotalFacturado
                 IngresoPresupuestado += fact.IngresoPresupuestado
             }
-            binding.tvFacturacion.text = "Total: $${TotalFacturado} / Objetivo: $${IngresoPresupuestado}"
+            binding.tvFacturacion.text = "${formatMoney(TotalFacturado)}"
+            binding.tvFacturacionEsperada.text = "de ${formatMoney(IngresoPresupuestado)}"
             var progressFact = ((TotalFacturado/IngresoPresupuestado)*100).toInt()
             val pf = if (progressFact >= 100) 100 else progressFact
             binding.progressFacturacion.progress = pf
@@ -109,7 +107,7 @@ class MainActivity : BaseActivity(), WebSocketCallback {
             }
             val kml = Kilometros/LitrosTotalesReales
             val rend = RendimientoMinimo/rendimiento.size
-            binding.tvRendimiento.text = "Rendimiento mínimo: ${rend}km/lt"
+            binding.tvRendimiento.text = "${rend}km/lt"
             var progressRend = ((kml/rend)*100).toInt()
             val pr = if (progressRend >= 100) 100 else progressRend
             binding.progressRendimiento.progress = pr
@@ -163,6 +161,15 @@ class MainActivity : BaseActivity(), WebSocketCallback {
     override fun onError(error: String) {
         runOnUiThread {
             showError("Error de conexión: $error")
+        }
+    }
+
+    private fun formatMoney(number: Double): String {
+        val formatter = DecimalFormat("$#,##0.00")
+        return if (number < 0) {
+            "-${formatter.format(kotlin.math.abs(number))}"
+        } else {
+            formatter.format(number)
         }
     }
 

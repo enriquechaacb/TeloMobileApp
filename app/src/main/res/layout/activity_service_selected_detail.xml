@@ -25,6 +25,32 @@
             android:textSize="18sp"
             android:layout_marginBottom="8dp" />
 
+        <!-- Sección de Itinerario -->
+        <androidx.appcompat.widget.AppCompatTextView
+            android:id="@+id/sectionSchedule"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@color/telo_gray"
+            android:textColor="@color/white"
+            android:padding="8dp"
+            android:text="Itinerario"
+            android:drawableEnd="@drawable/ic_expand_more" />
+
+        <LinearLayout
+            android:id="@+id/contentSchedule"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:visibility="gone"
+            android:padding="8dp">
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rvSchedule"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:visibility="gone" />
+
+        </LinearLayout>
+
         <!-- Sección de Paradas -->
         <androidx.appcompat.widget.AppCompatTextView
             android:id="@+id/sectionStops"

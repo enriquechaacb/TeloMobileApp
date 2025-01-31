@@ -3,4 +3,5 @@
     <dimen name="common_padding_default">16dp</dimen>
     <dimen name="title_h2">24sp</dimen>
     <dimen name="title_h3">16sp</dimen>
+    <dimen name="dashboard_item_height">216dp</dimen>
 </resources>

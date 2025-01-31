@@ -12,6 +12,7 @@ import android.widget.TextView
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import com.app.telomobileapp.R
+import com.app.telomobileapp.data.local.PreferenceManager
 import com.app.telomobileapp.data.model.AnticipoResponse
 import com.app.telomobileapp.data.model.LiquidacionResponse
 import com.app.telomobileapp.data.model.PlanPagoResponse
@@ -42,7 +43,7 @@ class Accountstate : BaseActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityAccountstateBinding.bind(findViewById(R.id.account_state_container))
         sessionManager = SessionManager(this)
-        licencia = sessionManager.getLicencia().toString()
+        licencia = PreferenceManager(context = this@Accountstate).getLicencia().toString()
         loadAccountGrid()
         val spinner = findViewById<Spinner>(R.id.spinnerFiltro)
         ArrayAdapter.createFromResource(
